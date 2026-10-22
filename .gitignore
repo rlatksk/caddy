@@ -1,0 +1,16 @@
+.gradle/
+build/
+*/build/
+*.part
+
+# Feasibility docs — not part of the repo
+*.pdf
+
+# Local-only source list. Never published: the engine ships no sources and the
+# maintainer does not provide or endorse any repository. Regenerate with
+# tools/gen_repo.py; it stays on your machine.
+/repo/*
+!/repo/index.example.json
+
+# Your system -> collection map. Same reason: not published.
+tools/sources.local.json

@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "name": "Example Retro Repo",
+  "sources": [
+    {
+      "id": "example_archive",
+      "name": "Example Archive",
+      "version": "1.0.0",
+      "transport": "http",
+      "adapter": "archive_org",
+      "systems": ["genesis"],
+      "config": {
+        "collections": { "genesis": "replace_with_a_real_collection_id" }
+      }
+    },
+    {
+      "id": "example_minerva",
+      "name": "Example Torrent Archive",
+      "version": "1.0.0",
+      "transport": "torrent",
+      "adapter": "minerva",
+      "systems": ["gba"],
+      "config": {
+        "baseUrl": "https://example.invalid",
+        "paths": { "gba": "No-Intro/Example System" }
+      }
+    }
+  ]
+}

@@ -1,0 +1,161 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://caddy.example/schema/index.schema.json",
+  "title": "Caddy repository index",
+  "type": "object",
+  "required": ["schemaVersion", "name", "sources"],
+  "additionalProperties": true,
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Contract version. The app supports 1; unknown future versions are rejected, not guessed."
+    },
+    "name": { "type": "string", "minLength": 1 },
+    "homepage": { "type": "string", "format": "uri" },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/source" }
+    }
+  },
+  "$defs": {
+    "system": {
+      "type": "string",
+      "description": "ES-DE system name. In es_systems.xml <name> equals <path>, so this string is also the ROMs/<system> folder name. No mapping table exists.",
+      "pattern": "^[a-z0-9]+$"
+    },
+    "source": {
+      "type": "object",
+      "required": ["id", "name", "transport", "adapter", "systems"],
+      "additionalProperties": true,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_.-]*$",
+          "description": "Stable within its repo. Download rows reference this."
+        },
+        "name": { "type": "string", "minLength": 1 },
+        "version": { "type": "string" },
+        "appMinVerReq": {
+          "type": "string",
+          "description": "Semver of the app that first understood this entry. Older apps skip the source, never fail the repo."
+        },
+        "transport": { "enum": ["http", "torrent", "browser"] },
+        "adapter": { "enum": ["archive_org", "minerva", "html_index", "browser_capture"] },
+        "systems": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/system" }
+        },
+        "config": { "type": "object" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "adapter": { "const": "archive_org" } }, "required": ["adapter"] },
+          "then": {
+            "required": ["transport", "config"],
+            "properties": {
+              "transport": { "const": "http" },
+              "config": {
+                "type": "object",
+                "required": ["collections"],
+                "properties": {
+                  "collections": {
+                    "type": "object",
+                    "minProperties": 1,
+                    "additionalProperties": { "type": "string", "minLength": 1 },
+                    "description": "system -> archive.org collection identifier. Only identifiers that return items belong here."
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "adapter": { "const": "minerva" } }, "required": ["adapter"] },
+          "then": {
+            "required": ["transport", "config"],
+            "properties": {
+              "transport": { "const": "torrent" },
+              "config": {
+                "type": "object",
+                "required": ["baseUrl", "paths"],
+                "properties": {
+                  "baseUrl": { "type": "string", "format": "uri", "pattern": "^https://" },
+                  "paths": {
+                    "type": "object",
+                    "minProperties": 1,
+                    "additionalProperties": { "type": "string", "minLength": 1 },
+                    "description": "system -> browse path under baseUrl, as published by the source."
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "adapter": { "const": "html_index" } }, "required": ["adapter"] },
+          "then": {
+            "required": ["transport", "config"],
+            "properties": {
+              "transport": { "const": "http" },
+              "config": {
+                "type": "object",
+                "required": ["baseUrl", "pages"],
+                "properties": {
+                  "baseUrl": { "type": "string", "format": "uri", "pattern": "^https://" },
+                  "pages": {
+                    "type": "object",
+                    "minProperties": 1,
+                    "additionalProperties": { "$ref": "#/$defs/page" },
+                    "description": "system -> selectors for that system's listing page."
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "adapter": { "const": "browser_capture" } }, "required": ["adapter"] },
+          "then": {
+            "required": ["transport", "config"],
+            "properties": {
+              "transport": { "const": "browser" },
+              "config": {
+                "type": "object",
+                "required": ["captureHost", "pages"],
+                "properties": {
+                  "captureHost": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9.-]+\\.[a-z]{2,}$",
+                    "description": "Host whose navigation the WebView intercepts. Shown to the user before capture starts."
+                  },
+                  "pages": {
+                    "type": "object",
+                    "minProperties": 1,
+                    "additionalProperties": { "type": "string", "format": "uri", "pattern": "^https://" },
+                    "description": "system -> listing page the WebView opens."
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "page": {
+      "type": "object",
+      "required": ["url", "itemSelector", "titleSelector", "downloadSelector"],
+      "additionalProperties": false,
+      "properties": {
+        "url": { "type": "string", "format": "uri", "pattern": "^https://" },
+        "itemSelector": { "type": "string", "minLength": 1 },
+        "titleSelector": { "type": "string", "minLength": 1 },
+        "sizeSelector": { "type": "string" },
+        "downloadSelector": { "type": "string", "minLength": 1 },
+        "nextPageSelector": { "type": "string" }
+      }
+    }
+  }
+}

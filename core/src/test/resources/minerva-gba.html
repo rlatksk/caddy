@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>MiNERVA Archive | Directory Listing</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/mobile.css">
+    <link rel="shortcut icon" href="/assets/favicon.svg" type="image/x-icon">
+    <script src="/js/directory_search.js" defer></script>
+    <script>
+        //Taken From https://dev.to/naimur/building-offline-ready-webpage-with-service-worker-and-cache-storage-3dbk! (Credit)
+        async function registerServiceWorker() {
+            if ("serviceWorker" in navigator) {
+                try {
+                    const registration = await navigator.serviceWorker.register(
+                        "/sw.js"
+                    );
+                    console.log(
+                        "Service Worker registered with scope:",
+                        registration.scope
+                    );
+                } catch (error) {
+                    console.error("Service Worker registration failed:", error);
+                };
+            };
+        };
+
+        registerServiceWorker();
+    </script>
+</head>
+
+<body>
+    <nav class="nav">
+        <a href="/" draggable="false">Home</a>
+        <a href="/browse" draggable="false"><u>Browse</u></a>
+        <a href="/search" draggable="false">Search</a>
+        <a href="/dashboard" draggable="false">Dashboard</a>
+        <a href="/contact" draggable="false">Contact Us</a>
+        <a href="/faq" draggable="false">FAQ</a>
+        <a href="/dmca" draggable="false">DMCA</a>
+    </nav>
+
+    <main class="container">
+        <h1 class="title"><span class="typing">Directory</span></h1>
+
+        
+            <div class="breadcrumbs">
+                <a href="/browse/" draggable="false">Root</a> / 
+                    
+                        <a href="/browse/./" draggable="false">.</a>
+                         / 
+                    
+                        <a href="/browse/./No-Intro/" draggable="false">No-Intro</a>
+                         / 
+                    
+                        <a href="/browse/./No-Intro/Example%20System/" draggable="false">Nintendo - Game Boy Advance</a>
+                        
+                    
+            </div>
+        
+
+        <div class="dir">
+            <input class="entry search_dir" id="search_dir" type="text" name="query" placeholder="Search this directory...">
+            
+                <div class="entry search_back">
+                    <a href="/browse/./No-Intro/" draggable="false">../</a>
+                </div>
+            
+
+            <script>
+                const trackers = "&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2F9.rarbg.com%3A2810%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A6969%2Fannounce&tr=http%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=http%3A%2F%2F95.107.48.115%3A80%2Fannounce&tr=http%3A%2F%2Fopen.acgnxtracker.com%3A80%2Fannounce&tr=http%3A%2F%2Ft.acg.rip%3A6699%2Fannounce&tr=http%3A%2F%2Ft.nyaatracker.com%3A80%2Fannounce&tr=http%3A%2F%2Ftracker.bt4g.com%3A2095%2Fannounce&tr=http%3A%2F%2Ftracker.files.fm%3A6969%2Fannounce&tr=http%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=http%3A%2F%2Fvps02.net.orel.ru%3A80%2Fannounce&tr=https%3A%2F%2F1337.abcvg.info%3A443%2Fannounce&tr=https%3A%2F%2Fopentracker.i2p.rocks%3A443%2Fannounce&tr=https%3A%2F%2Ftracker.nanoha.org%3A443%2Fannounce&tr=https%3A%2F%2Ftracker.sloppyta.co%3A443%2Fannounce&tr=udp%3A%2F%2F208.83.20.20%3A6969%2Fannounce&tr=udp%3A%2F%2F37.235.174.46%3A2710%2Fannounce&tr=udp%3A%2F%2F75.127.14.224%3A2710%2Fannounce&tr=udp%3A%2F%2Fexodus.desync.com%3A6969%2Fannounce&tr=udp%3A%2F%2Fexplodie.org%3A6969%2Fannounce&tr=udp%3A%2F%2Ffe.dealclub.de%3A6969%2Fannounce&tr=udp%3A%2F%2Fipv4.tracker.harry.lu%3A80%2Fannounce&tr=udp%3A%2F%2Fmovies.zsw.ca%3A6969%2Fannounce&tr=udp%3A%2F%2Fopen.demonii.com%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce&tr=udp%3A%2F%2Fp4p.arenabg.com%3A1337%2Fannounce&tr=udp%3A%2F%2Fpublic.tracker.vraphim.com%3A6969%2Fannounce&tr=udp%3A%2F%2Fretracker.lanta-net.ru%3A2710%2Fannounce&tr=udp%3A%2F%2Ftracker.0x.tf%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.dler.org%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.filemail.com%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.moeking.me%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.pomf.se%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.swateam.org.uk%3A2710%2Fannounce&tr=udp%3A%2F%2Ftracker.tiny-vps.com%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce";
+                
+                function downloadMagnet(baseMagnet) {
+                    if (!baseMagnet) return;
+                    window.location.href = baseMagnet + trackers;
+                }
+
+                function downloadMagnets(rawList) {
+                    if (!rawList) return;
+                    const list = typeof rawList === 'string' ? rawList.split(',') : rawList;
+                    let magnetText = "";
+                    list.forEach(magnet => {
+                        if (magnet) {
+                            magnetText += (magnet + trackers) + "\n\n";
+                        }
+                    });
+                    const win = window.open('', '_blank');
+                    if (win) {
+                        win.document.write('<html lang="en"><head><title>Magnet Links</title><style>body { background: #121212; color: #e0e0e0; font-family: monospace; padding: 20px; word-break: break-all; } pre { white-space: pre-wrap; background: #1e1e1e; padding: 15px; border-radius: 6px; border: 1px solid #333; }</style></head><body><h2>Magnet Links</h2><pre>' + magnetText + '</pre></body></html>');
+                        win.document.close();
+                    }
+                }
+            </script>
+
+            
+                <div class="entry" data-name="[bios] game boy advance (gbc mode) (world).zip">
+                    
+                        <a href="/rom?id=2874734" draggable="false">[BIOS] Game Boy Advance (GBC Mode) (World).zip</a>
+                        <span>1.94 KB</span>
+                    
+                    
+                        
+                            <a href="javascript:void(0)" onclick="downloadMagnet('magnet:?xt=urn:btih:00000000deadbeef000000000000000000000000&amp;dn=Minerva_Myrient')" data-m="0" draggable="false" style="text-align: right; margin-right: 5px;" title="Download Magnet">&#129522;</a>
+                        
+                    
+                </div>
+            
+                
+<div class="entry" data-name="[bios] game boy advance (world) (beta).zip">
+                    
+                        <a href="/rom?id=2877051" draggable="false">[BIOS] Game Boy Advance (World) (Beta).zip</a>
+                        <span>13.56 KB</span>
+                    
+                    
+                        
+                            <a href="javascript:void(0)" onclick="downloadMagnet('magnet:?xt=urn:btih:00000000deadbeef000000000000000000000000&amp;dn=Minerva_Myrient')" data-m="1" draggable="false" style="text-align: right; margin-right: 5px;" title="Download Magnet">&#129522;</a>
+                        
+                    
+                </div>
+            
+                
+<div class="entry" data-name="[bios] game boy advance (world) (gamecube).zip">
+                    
+                        <a href="/rom?id=2877477" draggable="false">[BIOS] Game Boy Advance (World) (GameCube).zip</a>
+                        <span>13.39 KB</span>
+                    
+                    
+                        
+                            <a href="javascript:void(0)" onclick="downloadMagnet('magnet:?xt=urn:btih:00000000deadbeef000000000000000000000000&amp;dn=Minerva_Myrient')" data-m="2" draggable="false" style="text-align: right; margin-right: 5px;" title="Download Magnet">&#129522;</a>
+                        
+                    
+                </div>
+            
+                
+<div class="entry" data-name="[bios] game boy advance (world).zip">
+                    
+                        <a href="/rom?id=2874915" draggable="false">[BIOS] Game Boy Advance (World).zip</a>
+                        <span>13.37 KB</span>
+                    
+                    
+                        
+                            <a href="javascript:void(0)" onclick="downloadMagnet('magnet:?xt=urn:btih:00000000deadbeef000000000000000000000000&amp;dn=Minerva_Myrient')" data-m="3" draggable="false" style="text-align: right; margin-right: 5px;" title="Download Magnet">&#129522;</a>
+                        
+                    
+                </div>
+            
+                
+<div class="entry" data-name="[bios] nintendo game boy advance - game boy color mode boot rom (world) (rev 1).zip">
+                    
+                        <a href="/rom?id=2877666" draggable="false">[BIOS] Nintendo Game Boy Advance - Game Boy Color Mode Boot ROM (World) (Rev 1).zip</a>
+                        <span>2.01 KB</span>
+                    
+                    
+                        
+                            <a href="javascript:void(0)" onclick="downloadMagnet('magnet:?xt=urn:btih:00000000deadbeef000000000000000000000000&amp;dn=Minerva_Myrient')" data-m="4" draggable="false" style="text-align: right; margin-right: 5px;" title="Download Magnet">&#129522;</a>
+                        
+                    
+                </div>
+            
+                
+<div class="entry" data-name="[bios] nintendo game boy advance - game boy color mode boot rom (world).zip">
+                    
+                        <a href="/rom?id=2874154" draggable="false">[BIOS] Nintendo Game Boy Advance - Game Boy Color Mode Boot ROM (World).zip</a>
+                        <span>1.99 KB</span>
+                    
+                    
+                        
+                            <a href="javascript:void(0)" onclick="downloadMagnet('magnet:?xt=urn:btih:00000000deadbeef000000000000000000000000&amp;dn=Minerva_Myrient')" data-m="5" draggable="false" style="text-align: right; margin-right: 5px;" title="Download Magnet">&#129522;</a>
+                        
+                    
+                </div>
+            
+                
+<div class="entry" data-name="doraemon - midori no wakusei dokidoki daikyuushutsu! (japan).zip">
+                    
+                        <a href="/rom?id=2877186" draggable="false">Doraemon - Midori no Wakusei Dokidoki Daikyuushutsu! (Japan).zip</a>
+                        <span>2.56 MB</span>
+                    
+                    
+                        
+                            <a href="javascript:void(0)" onclick="downloadMagnet('magnet:?xt=urn:btih:00000000deadbeef000000000000000000000000&amp;dn=Minerva_Myrient')" data-m="900" draggable="false" style="text-align: right; margin-right: 5px;" title="Download Magnet">&#129522;</a>
+                        
+                    
+                </div>
+            
+                
+<div class="entry" data-name="double dragon advance (japan).zip">
+                    
+                        <a href="/rom?id=2877016" draggable="false">Double Dragon Advance (Japan).zip</a>
+                        <span>1.78 MB</span>
+                    
+                    
+                        
+                            <a href="javascript:void(0)" onclick="downloadMagnet('magnet:?xt=urn:btih:00000000deadbeef000000000000000000000000&amp;dn=Minerva_Myrient')" data-m="901" draggable="false" style="text-align: right; margin-right: 5px;" title="Download Magnet">&#129522;</a>
+                        
+                    
+                </div>
+            
+                
+<div class="entry" data-name="double dragon advance (usa).zip">
+                    
+                        <a href="/rom?id=2875316" draggable="false">Double Dragon Advance (USA).zip</a>
+                        <span>1.78 MB</span>
+                    
+                    
+                        
+                            <a href="javascript:void(0)" onclick="downloadMagnet('magnet:?xt=urn:btih:00000000deadbeef000000000000000000000000&amp;dn=Minerva_Myrient')" data-m="902" draggable="false" style="text-align: right; margin-right: 5px;" title="Download Magnet">&#129522;</a>
+                        
+                    
+                </div>
+            
+                
+<div class="entry" data-name="double game! - cartoon network block party &amp; cartoon network speedway (europe).zip">
+                    
+                        <a href="/rom?id=2875679" draggable="false">Double Game! - Cartoon Network Block Party &amp; Cartoon Network Speedway (Europe).zip</a>
+                        <span>3.30 MB</span>
+                    
+                    
+                        
+                            <a href="javascript:void(0)" onclick="downloadMagnet('magnet:?xt=urn:btih:00000000deadbeef000000000000000000000000&amp;dn=Minerva_Myrient')" data-m="903" draggable="false" style="text-align: right; margin-right: 5px;" title="Download Magnet">&#129522;</a>
+                        
+                    
+                </div>
+            
+                
+<div class="entry" data-name="double game! - golden nugget casino &amp; texas hold &#39;em poker (europe).zip">
+                    
+                        <a href="/rom?id=2876425" draggable="false">Double Game! - Golden Nugget Casino &amp; Texas Hold &#39;em Poker (Europe).zip</a>
+                        <span>4.30 MB</span>
+                    
+                    
+                        
+                            <a href="javascript:void(0)" onclick="downloadMagnet('magnet:?xt=urn:btih:00000000deadbeef000000000000000000000000&amp;dn=Minerva_Myrient')" data-m="904" draggable="false" style="text-align: right; margin-right: 5px;" title="Download Magnet">&#129522;</a>
+                        
+                    
+                </div>
+            
+                
+<div class="entry" data-name="double game! - quad desert fury &amp; monster trucks (europe).zip">
+                    
+                        <a href="/rom?id=2875882" draggable="false">Double Game! - Quad Desert Fury &amp; Monster Trucks (Europe).zip</a>
+                        <span>5.31 MB</span>
+                    
+                    
+                        
+                            <a href="javascript:void(0)" onclick="downloadMagnet('magnet:?xt=urn:btih:00000000deadbeef000000000000000000000000&amp;dn=Minerva_Myrient')" data-m="905" draggable="false" style="text-align: right; margin-right: 5px;" title="Download Magnet">&#129522;</a>
+                        
+                    
+                </div>
+            
+                
+<div class="entry" data-name="petz - hamsterz life 2 (usa).zip">
+                    
+                        <a href="/rom?id=2875075" draggable="false">Petz - Hamsterz Life 2 (USA).zip</a>
+                        <span>3.88 MB</span>
+                    
+                    
+                        
+                            <a href="javascript:void(0)" onclick="downloadMagnet('magnet:?xt=urn:btih:00000000deadbeef000000000000000000000000&amp;dn=Minerva_Myrient')" data-m="2400" draggable="false" style="text-align: right; margin-right: 5px;" title="Download Magnet">&#129522;</a>
+                        
+                    
+                </div>
+            
+                
+<div class="entry" data-name="petz vet (usa).zip">
+                    
+                        <a href="/rom?id=2874577" draggable="false">Petz Vet (USA).zip</a>
+                        <span>4.99 MB</span>
+                    
+                    
+                        
+                            <a href="javascript:void(0)" onclick="downloadMagnet('magnet:?xt=urn:btih:00000000deadbeef000000000000000000000000&amp;dn=Minerva_Myrient')" data-m="2401" draggable="false" style="text-align: right; margin-right: 5px;" title="Download Magnet">&#129522;</a>
+                        
+                    
+                </div>
+            
+                
+<div class="entry" data-name="pferd &amp; pony - best friends - mein pferd (germany) (en,de).zip">
+                    
+                        <a href="/rom?id=2876595" draggable="false">Pferd &amp; Pony - Best Friends - Mein Pferd (Germany) (En,De).zip</a>
+                        <span>3.06 MB</span>
+                    
+                    
+                        
+                            <a href="javascript:void(0)" onclick="downloadMagnet('magnet:?xt=urn:btih:00000000deadbeef000000000000000000000000&amp;dn=Minerva_Myrient')" data-m="2402" draggable="false" style="text-align: right; margin-right: 5px;" title="Download Magnet">&#129522;</a>
+                        
+                    
+                </div>
+            
+                
+<div class="entry" data-name="pferd &amp; pony - lass uns reiten 2 (germany) (en,de).zip">
+                    
+                        <a href="/rom?id=2874396" draggable="false">Pferd &amp; Pony - Lass Uns Reiten 2 (Germany) (En,De).zip</a>
+                        <span>1.00 MB</span>
+                    
+                    
+                        
+                            <a href="javascript:void(0)" onclick="downloadMagnet('magnet:?xt=urn:btih:00000000deadbeef000000000000000000000000&amp;dn=Minerva_Myrient')" data-m="2403" draggable="false" style="text-align: right; margin-right: 5px;" title="Download Magnet">&#129522;</a>
+                        
+                    
+                </div>
+            
+                
+<div class="entry" data-name="pferd &amp; pony - mein gestuet (germany) (en,de).zip">
+                    
+                        <a href="/rom?id=2877585" draggable="false">Pferd &amp; Pony - Mein Gestuet (Germany) (En,De).zip</a>
+                        <span>2.89 MB</span>
+                    
+                    
+                        
+                            <a href="javascript:void(0)" onclick="downloadMagnet('magnet:?xt=urn:btih:00000000deadbeef000000000000000000000000&amp;dn=Minerva_Myrient')" data-m="2404" draggable="false" style="text-align: right; margin-right: 5px;" title="Download Magnet">&#129522;</a>
+                        
+                    
+                </div>
+            
+                
+<div class="entry" data-name="pferd &amp; pony - mein pferdehof (germany) (en,de).zip">
+                    
+                        <a href="/rom?id=2874270" draggable="false">Pferd &amp; Pony - Mein Pferdehof (Germany) (En,De).zip</a>
+                        <span>1.19 MB</span>
+                    
+                    
+                        
+                            <a href="javascript:void(0)" onclick="downloadMagnet('magnet:?xt=urn:btih:00000000deadbeef000000000000000000000000&amp;dn=Minerva_Myrient')" data-m="2405" draggable="false" style="text-align: right; margin-right: 5px;" title="Download Magnet">&#129522;</a>
+                        
+                    
+                </div>
+            
+                
+<div class="entry" data-name="zone of the enders - the fist of mars (usa).zip">
+                    
+                        <a href="/rom?id=2875842" draggable="false">Zone of the Enders - The Fist of Mars (USA).zip</a>
+                        <span>4.13 MB</span>
+                    
+                    
+                        
+                            <a href="javascript:void(0)" onclick="downloadMagnet('magnet:?xt=urn:btih:00000000deadbeef000000000000000000000000&amp;dn=Minerva_Myrient')" data-m="3682" draggable="false" style="text-align: right; margin-right: 5px;" title="Download Magnet">&#129522;</a>
+                        
+                    
+                </div>
+            
+                
+<div class="entry" data-name="zoocube (europe) (en,fr,de,es,it).zip">
+                    
+                        <a href="/rom?id=2875896" draggable="false">ZooCube (Europe) (En,Fr,De,Es,It).zip</a>
+                        <span>1.08 MB</span>
+                    
+                    
+                        
+                            <a href="javascript:void(0)" onclick="downloadMagnet('magnet:?xt=urn:btih:00000000deadbeef000000000000000000000000&amp;dn=Minerva_Myrient')" data-m="3683" draggable="false" style="text-align: right; margin-right: 5px;" title="Download Magnet">&#129522;</a>
+                        
+                    
+                </div>
+            
+                
+<div class="entry" data-name="zoocube (japan).zip">
+                    
+                        <a href="/rom?id=2876535" draggable="false">ZooCube (Japan).zip</a>
+                        <span>1.07 MB</span>
+                    
+                    
+                        
+                            <a href="javascript:void(0)" onclick="downloadMagnet('magnet:?xt=urn:btih:00000000deadbeef000000000000000000000000&amp;dn=Minerva_Myrient')" data-m="3684" draggable="false" style="text-align: right; margin-right: 5px;" title="Download Magnet">&#129522;</a>
+                        
+                    
+                </div>
+            
+                
+<div class="entry" data-name="zoocube (usa).zip">
+                    
+                        <a href="/rom?id=2876457" draggable="false">ZooCube (USA).zip</a>
+                        <span>1.07 MB</span>
+                    
+                    
+                        
+                            <a href="javascript:void(0)" onclick="downloadMagnet('magnet:?xt=urn:btih:00000000deadbeef000000000000000000000000&amp;dn=Minerva_Myrient')" data-m="3685" draggable="false" style="text-align: right; margin-right: 5px;" title="Download Magnet">&#129522;</a>
+                        
+                    
+                </div>
+            
+                
+<div class="entry" data-name="zook man zx4 (taiwan) (unl).zip">
+                    
+                        <a href="/rom?id=2876269" draggable="false">Zook Man ZX4 (Taiwan) (Unl).zip</a>
+                        <span>675.78 KB</span>
+                    
+                    
+                        
+                            <a href="javascript:void(0)" onclick="downloadMagnet('magnet:?xt=urn:btih:00000000deadbeef000000000000000000000000&amp;dn=Minerva_Myrient')" data-m="3686" draggable="false" style="text-align: right; margin-right: 5px;" title="Download Magnet">&#129522;</a>
+                        
+                    
+                </div>
+            
+                
+
+</body></html>
