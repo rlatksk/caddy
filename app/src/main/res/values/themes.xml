@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Distinct name from the parent, or aapt2 reports a ResourceCycle. -->
+    <style name="Theme.Caddy" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:windowBackground">#000000</item>
+    </style>
+</resources>

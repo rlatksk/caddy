@@ -35,6 +35,13 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // A crash on a device with no cable is unreadable. Install the handler
+        // before anything else can throw, so the failure lands on screen.
+        val previous = Thread.getDefaultUncaughtExceptionHandler()
+        Thread.setDefaultUncaughtExceptionHandler { thread, error ->
+            runCatching { writeCrash(error) }
+            previous?.uncaughtException(thread, error)
+        }
 
         output = TextView(this).apply {
             textSize = 13f
@@ -66,8 +73,13 @@ class MainActivity : AppCompatActivity() {
             }
         )
 
-        header()
-        runSelfTest()
+        runCatching {
+            header()
+            runSelfTest()
+        }.onFailure { error ->
+            line("SELF-TEST THREW: ${error::class.java.simpleName}: ${error.message}")
+            line(error.stackTraceToString().take(1500))
+        }
     }
 
     private fun line(text: String) {
@@ -148,17 +160,32 @@ class MainActivity : AppCompatActivity() {
         line(if (failed == 0) "CORE OK on ${Build.SUPPORTED_ABIS.first()}" else "CORE BROKEN")
     }
 
+    private fun writeCrash(error: Throwable) {
+        val dir = File(getExternalFilesDir(null), "logs").apply { mkdirs() }
+        File(dir, "crash-${System.currentTimeMillis()}.log").writeText(
+            "device ${Build.MANUFACTURER} ${Build.MODEL} / API ${Build.VERSION.SDK_INT}\n" +
+                "abi ${Build.SUPPORTED_ABIS.joinToString()}\n\n" +
+                error.stackTraceToString()
+        )
+    }
+
     private fun exportLog() {
         val dir = File(getExternalFilesDir(null), "logs").apply { mkdirs() }
         val stamp = SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(Date())
         val file = File(dir, "caddy-$stamp.log")
         file.writeText(log.toString())
+        val uri = runCatching {
+            androidx.core.content.FileProvider.getUriForFile(
+                this, "$packageName.files", file,
+            )
+        }.getOrElse { android.net.Uri.fromFile(file) }
         startActivity(
             Intent.createChooser(
                 Intent(Intent.ACTION_SEND).apply {
                     type = "text/plain"
-                    putExtra(Intent.EXTRA_STREAM, android.net.Uri.fromFile(file))
+                    putExtra(Intent.EXTRA_STREAM, uri)
                     putExtra(Intent.EXTRA_SUBJECT, "Caddy log $stamp")
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 },
                 "Share log"
             )
