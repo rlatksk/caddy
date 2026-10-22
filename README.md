@@ -87,6 +87,28 @@ pip install jsonschema
 python tools/validate_repo.py path/to/index.json
 ```
 
+## Install (Android)
+
+```sh
+gradle :app:assembleRelease
+# -> app/build/outputs/apk/release/app-release.apk
+```
+
+Sideload only: all-files access is a Play policy violation, so there is no store
+listing. arm64-v8a, minSdk 26.
+
+Wireless debugging (no cable, no battery concern):
+
+```sh
+adb pair <ip>:<port>     # from Developer options > Wireless debugging
+adb connect <ip>:<port>
+adb install -r app-release.apk
+```
+
+The app has an **Export log** button; it writes to
+`Android/data/caddy.android/files/logs/` and opens the share sheet, so a failure
+on the device produces evidence without a connection.
+
 ## The spike
 
 ```sh

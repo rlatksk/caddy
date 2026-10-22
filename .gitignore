@@ -14,3 +14,9 @@ build/
 
 # Your system -> collection map. Same reason: not published.
 tools/sources.local.json
+
+# Built APKs are distributed as GitHub releases, not committed
+/releases/
+
+# Machine-specific SDK path
+local.properties
