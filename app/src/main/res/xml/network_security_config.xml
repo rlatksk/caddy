@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Cleartext is permitted at the platform layer only because a user may self-host
+  a repository on their LAN. The real policy lives in RepoFetcher.requireHttps():
+  anything that is not a private address must be HTTPS, and the user gets a
+  specific error message instead of a silent platform refusal.
+
+  Platform-level <domain> matching against IP literals is unreliable across
+  Android versions, so the decision is made in code.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

@@ -7,10 +7,13 @@ plugins {
 repositories { mavenCentral() }
 
 dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
-    implementation("com.squareup.okhttp3:okhttp:5.2.1")
-    implementation("org.jsoup:jsoup:1.21.2")
+    // api, not implementation: the :app module consumes CatalogEntry, Hashes and
+    // SourceConfig, and those types reference okhttp/serialization in their
+    // signatures.
+    api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
+    api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+    api("com.squareup.okhttp3:okhttp:5.2.1")
+    api("org.jsoup:jsoup:1.21.2")
     testImplementation(kotlin("test"))
 }
 

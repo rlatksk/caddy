@@ -1,194 +1,255 @@
 package caddy.android
 
-import android.content.Intent
 import android.os.Bundle
-import android.os.Build
+import android.text.InputType
+import android.view.KeyEvent
+import android.view.View
 import android.widget.Button
+import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import caddy.Hashes
-import caddy.SourceConfig
-import caddy.SourceParams
-import caddy.SystemRouter
-import caddy.Transport
-import caddy.buildCatalog
-import caddy.parseIndex
-import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 
 /**
- * P0 shell. Not the real UI — this exists to prove four things on the device:
+ * P1: add a repository, then toggle systems.
  *
- *  1. the APK installs and runs on arm64,
- *  2. the :core module executes on Android, not just the JVM,
- *  3. ES-DE routing produces the right folder names,
- *  4. we can get a log off the device without a cable.
+ * Three ways in, because the device must not depend on the user publishing
+ * anything: a URL, pasted JSON, or a LAN address.
  */
 class MainActivity : AppCompatActivity() {
 
-    private val log = StringBuilder()
-    private lateinit var output: TextView
+    private lateinit var store: RepoStore
+    private lateinit var fetcher: RepoFetcher
+
+    private lateinit var status: TextView
+    private lateinit var urlInput: EditText
+    private lateinit var jsonInput: EditText
+    private lateinit var systemsContainer: LinearLayout
+    private lateinit var repoSummary: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // A crash on a device with no cable is unreadable. Install the handler
-        // before anything else can throw, so the failure lands on screen.
+        store = RepoStore(this)
+        fetcher = RepoFetcher(store)
+
         val previous = Thread.getDefaultUncaughtExceptionHandler()
         Thread.setDefaultUncaughtExceptionHandler { thread, error ->
             runCatching { writeCrash(error) }
             previous?.uncaughtException(thread, error)
         }
 
-        output = TextView(this).apply {
-            textSize = 13f
-            setTextIsSelectable(true)
+        status = TextView(this).apply {
+            textSize = 14f
             typeface = android.graphics.Typeface.MONOSPACE
-            setPadding(32, 24, 32, 24)
+            setPadding(24, 16, 24, 16)
         }
 
-        val run = Button(this).apply {
-            text = "Run core self-test"
-            setOnClickListener { runSelfTest() }
-        }
-        val share = Button(this).apply {
-            text = "Export log"
-            setOnClickListener { exportLog() }
+        urlInput = EditText(this).apply {
+            hint = "https://…/index.json  or  user/repo/blob/main/index.json"
+            inputType = InputType.TYPE_TEXT_VARIATION_URI
+            setSingleLine(true)
+            textSize = 15f
         }
 
-        val buttons = LinearLayout(this).apply {
+        jsonInput = EditText(this).apply {
+            hint = "…or paste the index JSON here"
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
+            minLines = 2
+            maxLines = 4
+            textSize = 13f
+        }
+
+        repoSummary = TextView(this).apply {
+            textSize = 14f
+            typeface = android.graphics.Typeface.MONOSPACE
+            setPadding(0, 16, 0, 8)
+        }
+
+        systemsContainer = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+
+        val addButton = Button(this).apply {
+            text = "Add repository"
+            setOnClickListener { addFromUrl() }
+        }
+        val pasteButton = Button(this).apply {
+            text = "Use pasted JSON"
+            setOnClickListener { addFromPaste() }
+        }
+        val removeButton = Button(this).apply {
+            text = "Remove"
+            setOnClickListener { removeRepo() }
+        }
+        val refreshButton = Button(this).apply {
+            text = "Refresh"
+            setOnClickListener { refresh() }
+        }
+
+        val row = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
-            addView(run)
-            addView(share)
+            addView(addButton)
+            addView(pasteButton)
+            addView(refreshButton)
+            addView(removeButton)
         }
 
         setContentView(
             LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
-                addView(buttons)
-                addView(ScrollView(this@MainActivity).apply { addView(output) })
+                setPadding(24, 16, 24, 16)
+                addView(urlInput)
+                addView(jsonInput)
+                addView(row)
+                addView(status)
+                addView(ScrollView(this@MainActivity).apply {
+                    addView(LinearLayout(this@MainActivity).apply {
+                        orientation = LinearLayout.VERTICAL
+                        addView(repoSummary)
+                        addView(systemsContainer)
+                    })
+                })
             }
         )
 
-        runCatching {
-            header()
-            runSelfTest()
-        }.onFailure { error ->
-            line("SELF-TEST THREW: ${error::class.java.simpleName}: ${error.message}")
-            line(error.stackTraceToString().take(1500))
+        // D-pad: enter on the URL field adds, so the screen is usable with a pad.
+        urlInput.setOnKeyListener { _, keyCode, event ->
+            if (event.action == KeyEvent.ACTION_UP && keyCode == KeyEvent.KEYCODE_ENTER) {
+                addFromUrl(); true
+            } else false
+        }
+
+        render()
+    }
+
+    private fun say(text: String) {
+        status.text = text
+    }
+
+    private fun addFromUrl() {
+        val raw = urlInput.text.toString()
+        if (raw.isBlank()) {
+            say("Enter a repository URL first.")
+            return
+        }
+        say("Fetching…")
+        lifecycleScope.launch {
+            fetcher.fetch(raw).fold(
+                onSuccess = {
+                    urlInput.setText("")
+                    jsonInput.setText("")
+                    say("Repository added.")
+                    render()
+                },
+                onFailure = { error ->
+                    say((error as? RepoException)?.error?.message() ?: "Failed: ${error.message}")
+                },
+            )
         }
     }
 
-    private fun line(text: String) {
-        log.append(text).append('\n')
-        output.text = log.toString()
-    }
-
-    private fun header() {
-        line("Caddy ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})")
-        line("device   ${Build.MANUFACTURER} ${Build.MODEL}")
-        line("android  ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})")
-        line("abi      ${Build.SUPPORTED_ABIS.joinToString()}")
-        line("")
-    }
-
-    private fun runSelfTest() {
-        line("── core self-test ──")
-        var passed = 0
-        var failed = 0
-        fun check(name: String, block: () -> Boolean) {
-            val ok = runCatching(block).getOrElse { false }
-            if (ok) passed++ else failed++
-            line("${if (ok) "PASS" else "FAIL"}  $name")
+    /** Pasted JSON is validated by the same path as a fetched document. */
+    private fun addFromPaste() {
+        val text = jsonInput.text.toString().trim()
+        if (text.isEmpty()) {
+            say("Paste the index JSON first.")
+            return
         }
-
-        // 1. ES-DE routing: the system name IS the folder name.
-        check("router gba -> gba") { SystemRouter.relativePath("gba") == "gba" }
-        check("router psx -> psx") { SystemRouter.relativePath("psx") == "psx" }
-        check("router rejects traversal") {
-            runCatching { SystemRouter.relativePath("../etc") }.isFailure
-        }
-
-        // 2. Index parsing, including the forward-compat rules.
-        val indexText = """
-            {"schemaVersion":1,"name":"selftest","sources":[
-              {"id":"a","name":"A","transport":"http","adapter":"archive_org",
-               "systems":["genesis"],"config":{"collections":{"genesis":"example"}}},
-              {"id":"b","name":"B","transport":"http","adapter":"from_the_future",
-               "systems":["gba"],"config":{}}
-            ]}
-        """.trimIndent()
-        val known = setOf("archive_org", "minerva", "html_index", "browser_capture")
-        val parsed = runCatching { parseIndex(indexText, known) }.getOrNull()
-        check("index parses") { parsed != null }
-        check("unknown adapter dropped, not fatal") { parsed?.sources?.size == 1 }
-        check("transport parsed") { parsed?.sources?.first()?.transport == Transport.HTTP }
-        check("newer schemaVersion rejected") {
-            runCatching { parseIndex("""{"schemaVersion":99,"name":"x","sources":[]}""", known) }
-                .isFailure
-        }
-
-        // 3. Catalog dedupe, the hard part of the product.
-        val files = listOf(
-            "Metroid Fusion (USA).zip",
-            "Metroid Fusion (Europe) (En,Fr,De).zip",
-            "Metroid Fusion (Japan).zip",
-            "[BIOS] Game Boy Advance (World).zip",
-            "Advance Wars (USA).zip",
-        ).map { caddy.CatalogEntry(system = "gba", title = it, filename = it) }
-        val catalog = runCatching { buildCatalog("gba", files) }.getOrNull()
-        check("catalog dedupes 5 files -> 2 games") { catalog?.size == 2 }
-        check("catalog drops BIOS") { catalog?.none { it.filename.startsWith("[BIOS]") } == true }
-        check("catalog prefers USA") {
-            catalog?.firstOrNull { it.filename.startsWith("Metroid") }?.region == "USA"
-        }
-
-        // 4. Minerva source config round-trip (no network in P0).
-        val minerva = SourceConfig(
-            id = "m", name = "M", transport = Transport.TORRENT, adapter = "minerva",
-            systems = listOf("gba"),
-            config = SourceParams(baseUrl = "https://example.invalid", paths = mapOf("gba" to "x")),
+        val result = runCatching { caddy.parseIndex(text, RepoStore.KNOWN_ADAPTERS) }
+        result.fold(
+            onSuccess = { index ->
+                if (index.sources.isEmpty()) {
+                    say("That JSON has no sources this app understands, so it was not kept.")
+                    return
+                }
+                store.indexJson = text
+                store.indexUrl = "pasted"
+                store.lastFetch = System.currentTimeMillis()
+                jsonInput.setText("")
+                say("Repository added from pasted JSON.")
+                render()
+            },
+            onFailure = { error ->
+                say("That isn't a valid index: ${error.message}")
+            },
         )
-        check("source config holds torrent transport") { minerva.transport == Transport.TORRENT }
-        check("hashes default empty") { Hashes().sha1 == null }
+    }
 
-        line("")
-        line("$passed passed, $failed failed")
-        line(if (failed == 0) "CORE OK on ${Build.SUPPORTED_ABIS.first()}" else "CORE BROKEN")
+    private fun removeRepo() {
+        store.indexJson = null
+        store.indexUrl = null
+        store.enabledSystems = emptySet()
+        say("Repository removed.")
+        render()
+    }
+
+    private fun refresh() {
+        val url = store.indexUrl
+        if (url == null || url == "pasted") {
+            say("Pasted repositories can't be refreshed; paste again.")
+            return
+        }
+        // Clearing first so the already-added guard does not block the refetch.
+        store.indexJson = null
+        store.indexUrl = null
+        urlInput.setText(url)
+        say("Refreshing…")
+        lifecycleScope.launch {
+            fetcher.fetch(url).fold(
+                onSuccess = { say("Repository refreshed."); render() },
+                onFailure = { say((it as? RepoException)?.error?.message() ?: "Failed: ${it.message}"); render() },
+            )
+        }
+    }
+
+    private fun render() {
+        systemsContainer.removeAllViews()
+        val sources = store.sources()
+
+        if (sources.isEmpty()) {
+            repoSummary.text = "No repository.\n\nCaddy doesn't include any game sources.\nAdd a repository to get started."
+            return
+        }
+
+        val systems = store.availableSystems()
+        val enabled = store.enabledSystems
+        repoSummary.text = buildString {
+            append("${store.indexUrl ?: "pasted"}\n")
+            append("${sources.size} source(s), ${systems.size} system(s)")
+            if (enabled.isNotEmpty()) append(", ${enabled.size} enabled")
+            append("\n")
+        }
+
+        systems.forEach { system ->
+            val row = TextView(this).apply {
+                text = "${if (system in enabled) "[x]" else "[ ]"}  $system"
+                textSize = 18f
+                typeface = android.graphics.Typeface.MONOSPACE
+                isFocusable = true
+                isClickable = true
+                setPadding(8, 12, 8, 12)
+                setOnClickListener {
+                    store.toggleSystem(system)
+                    render()
+                }
+            }
+            systemsContainer.addView(row)
+        }
+
+        if (enabled.isEmpty()) {
+            systemsContainer.addView(TextView(this).apply {
+                text = "\nNothing enabled yet. Pick the systems you want; only those appear in Browse."
+                textSize = 13f
+            })
+        }
     }
 
     private fun writeCrash(error: Throwable) {
-        val dir = File(getExternalFilesDir(null), "logs").apply { mkdirs() }
-        File(dir, "crash-${System.currentTimeMillis()}.log").writeText(
-            "device ${Build.MANUFACTURER} ${Build.MODEL} / API ${Build.VERSION.SDK_INT}\n" +
-                "abi ${Build.SUPPORTED_ABIS.joinToString()}\n\n" +
+        val dir = java.io.File(getExternalFilesDir(null), "logs").apply { mkdirs() }
+        java.io.File(dir, "crash-${System.currentTimeMillis()}.log").writeText(
+            "device ${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL} / API ${android.os.Build.VERSION.SDK_INT}\n" +
                 error.stackTraceToString()
-        )
-    }
-
-    private fun exportLog() {
-        val dir = File(getExternalFilesDir(null), "logs").apply { mkdirs() }
-        val stamp = SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(Date())
-        val file = File(dir, "caddy-$stamp.log")
-        file.writeText(log.toString())
-        val uri = runCatching {
-            androidx.core.content.FileProvider.getUriForFile(
-                this, "$packageName.files", file,
-            )
-        }.getOrElse { android.net.Uri.fromFile(file) }
-        startActivity(
-            Intent.createChooser(
-                Intent(Intent.ACTION_SEND).apply {
-                    type = "text/plain"
-                    putExtra(Intent.EXTRA_STREAM, uri)
-                    putExtra(Intent.EXTRA_SUBJECT, "Caddy log $stamp")
-                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                },
-                "Share log"
-            )
         )
     }
 }
