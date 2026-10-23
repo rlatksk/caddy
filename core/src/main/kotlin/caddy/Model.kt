@@ -4,6 +4,10 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
+const val KIND_BASE = "base"
+const val KIND_UPDATE = "update"
+const val KIND_DLC = "dlc"
+
 /** Bump when the contract changes. Older apps must skip, never fail. */
 const val SCHEMA_VERSION = 1
 
@@ -42,6 +46,8 @@ data class SourceParams(
     val paths: Map<String, String> = emptyMap(),
     val captureHost: String? = null,
     val pages: Map<String, String> = emptyMap(),
+    /** system -> file extensions that identify it on sources with no platform field. */
+    val extensions: Map<String, List<String>> = emptyMap(),
 )
 
 @Serializable
@@ -56,6 +62,31 @@ data class CatalogEntry(
     val junkTags: List<String> = emptyList(),
     /** Index of this file inside its torrent, when the source delivers by torrent. */
     val torrentFileIndex: Int? = null,
+    /**
+     * Source-native handle used to resolve the download, when the source's own id
+     * is not the filename (dlarchive). Null means "the filename is the handle".
+     */
+    val sourceRef: String? = null,
+    /** `base`, `update` or `dlc`. Switch ships all three as separate files. */
+    val kind: String = KIND_BASE,
+    /** Platform title id, so an update/DLC can be tied to its base game. */
+    val titleId: String? = null,
+    /**
+     * Extra files belonging to this game: its update and its DLC. Not separate
+     * catalog rows, because a library that lists "Witcher 3" five times is
+     * unreadable; the detail screen offers them as choices.
+     */
+    val variants: List<CatalogVariant> = emptyList(),
+)
+
+/** One downloadable file belonging to a base game. */
+@Serializable
+data class CatalogVariant(
+    val kind: String,
+    val filename: String,
+    val sizeBytes: Long? = null,
+    val revision: Int = 0,
+    val sourceRef: String? = null,
 )
 
 @Serializable
@@ -79,6 +110,17 @@ sealed interface ResolvedDownload {
 }
 
 class SourceUnavailable(message: String, val retryable: Boolean = true) : Exception(message)
+
+/** A variant as a standalone entry, so adapters resolve it exactly like a base game. */
+fun CatalogEntry.asVariant(variant: CatalogVariant): CatalogEntry = copy(
+    title = title,
+    filename = variant.filename,
+    sizeBytes = variant.sizeBytes,
+    revision = variant.revision,
+    sourceRef = variant.sourceRef,
+    kind = variant.kind,
+    variants = emptyList(),
+)
 
 interface SourceAdapter {
     fun supports(system: String): Boolean

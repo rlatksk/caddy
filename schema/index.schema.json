@@ -42,7 +42,7 @@
           "description": "Semver of the app that first understood this entry. Older apps skip the source, never fail the repo."
         },
         "transport": { "enum": ["http", "torrent", "browser"] },
-        "adapter": { "enum": ["archive_org", "minerva", "html_index", "browser_capture"] },
+        "adapter": { "enum": ["archive_org", "minerva", "dlarchive", "html_index", "browser_capture"] },
         "systems": {
           "type": "array",
           "minItems": 1,
@@ -88,6 +88,37 @@
                     "minProperties": 1,
                     "additionalProperties": { "type": "string", "minLength": 1 },
                     "description": "system -> browse path under baseUrl, as published by the source."
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "adapter": { "const": "dlarchive" } }, "required": ["adapter"] },
+          "then": {
+            "required": ["transport", "config"],
+            "properties": {
+              "transport": { "const": "http" },
+              "config": {
+                "type": "object",
+                "required": ["baseUrl", "extensions"],
+                "properties": {
+                  "baseUrl": {
+                    "type": "string",
+                    "format": "uri",
+                    "pattern": "^https://",
+                    "description": "files_api.php endpoint. No trailing query string."
+                  },
+                  "extensions": {
+                    "type": "object",
+                    "minProperties": 1,
+                    "additionalProperties": {
+                      "type": "array",
+                      "minItems": 1,
+                      "items": { "type": "string", "pattern": "^[a-z0-9]+$" }
+                    },
+                    "description": "system -> file extensions. The index has no platform field, so this is the filter."
                   }
                 }
               }

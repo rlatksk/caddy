@@ -62,6 +62,7 @@ Rules that are load-bearing:
 |---|---|---|
 | `archive_org` | http | `collections`: system → archive.org collection id |
 | `minerva` | torrent | `baseUrl`, `paths`: system → browse path |
+| `dlarchive` | http | `baseUrl`, `extensions`: system → file extensions |
 | `html_index` | http | `baseUrl`, `pages`: system → CSS selectors |
 | `browser_capture` | browser | `captureHost`, `pages`: system → listing URL |
 

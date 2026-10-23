@@ -140,7 +140,7 @@ class CatalogTest {
 
 class RepoTest {
 
-    private val adapters = setOf("archive_org", "minerva", "html_index", "browser_capture")
+    private val adapters = setOf("archive_org", "minerva", "dlarchive", "html_index", "browser_capture")
 
     @Test
     fun `unknown adapter types are dropped not fatal`() {

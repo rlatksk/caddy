@@ -50,7 +50,7 @@ def load_sources():
         raise SystemExit(2)
     with open(SOURCES, encoding="utf-8") as f:
         data = json.load(f)
-    return data.get("archiveOrg", {}), data.get("minerva", {})
+    return data.get("archiveOrg", {}), data.get("minerva", {}), data.get("dlarchive")
 
 
 def minerva_listing():
@@ -80,7 +80,7 @@ def es_systems():
 
 
 def build():
-    archive_org, minerva = load_sources()
+    archive_org, minerva, dlarchive = load_sources()
     systems = es_systems()
     errors = []
 
@@ -107,6 +107,14 @@ def build():
         mi_paths[system] = "%s/%s" % (top, name)
         mi_systems.append(system)
 
+    dl_extensions = {}
+    if dlarchive:
+        for system, exts in sorted((dlarchive.get("extensions") or {}).items()):
+            if system not in systems:
+                errors.append("%r is not an ES-DE system name" % system)
+                continue
+            dl_extensions[system] = exts
+
     if errors:
         for e in errors:
             print("ERROR " + e, file=sys.stderr)
@@ -132,6 +140,17 @@ def build():
             "adapter": "minerva",
             "systems": sorted(mi_systems),
             "config": {"baseUrl": MINERVA_BASE, "paths": mi_paths},
+        })
+
+    if dl_extensions:
+        sources.append({
+            "id": "dlarchive",
+            "name": "DLArchive",
+            "version": "1.0.0",
+            "transport": "http",
+            "adapter": "dlarchive",
+            "systems": sorted(dl_extensions),
+            "config": {"baseUrl": dlarchive["baseUrl"], "extensions": dl_extensions},
         })
 
     return {"schemaVersion": 1, "name": "Local Repo", "sources": sources}
