@@ -1,0 +1,11 @@
+design: one primary action treatment, tighter rail footer
+
+Every action in the detail pane takes the primary treatment — white
+ground, dark label — whatever the transfer is doing. Download, Pause,
+Resume, Download again and Retry are the same control at different
+moments, so they no longer change weight between states.
+
+The rail's bottom padding stacked on the safe-area frame and left 17 dp
+of dead space under the queue and settings buttons. Both paddings are now
+one: the buttons sit 12 dp from the screen edge, level with the panel
+inset on every other side.

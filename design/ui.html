@@ -54,11 +54,11 @@
   .app ::placeholder{color:#6a6f69}
   .app .is-focused{outline:1px solid var(--fg);outline-offset:-1px}
 
-  .rail{border-right:1px solid var(--line);padding:5px 0;display:flex;flex-direction:column;min-height:0}
+  .rail{border-right:1px solid var(--line);padding:5px 0 0;display:flex;flex-direction:column;min-height:0}
   .sys{padding:8px 10px;font-size:12px;width:100%}
   .sys.on{background:var(--fg);color:#08090a}
   .systems{flex:1;min-height:0;overflow:hidden}
-  .railfoot{margin-top:auto;border-top:1px solid var(--line);padding:6px;display:flex;gap:4px}
+  .railfoot{margin-top:auto;border-top:1px solid var(--line);padding:6px 6px 0;display:flex;gap:4px}
   .railbtn{
     flex:1;position:relative;display:grid;place-items:center;height:34px;
     border:1px solid transparent;color:var(--mute);
@@ -474,7 +474,7 @@
         <p class="syn">${esc(g.syn)}</p>
         <div class="acts">
           <div class="meta" style="margin:0 0 7px">${esc(stateLine)}</div>
-          <button class="btn ${!g.state ? "primary" : ""}" data-zone="detail" data-act="primary">${label}</button>
+          <button class="btn primary" data-zone="detail" data-act="primary">${label}</button>
         </div>
       </aside>`;
   }
