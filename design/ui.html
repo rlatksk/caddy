@@ -447,7 +447,7 @@
 
   function detailHtml(g) {
     const label = !g.state ? "Download" : g.state === "run" || g.state === "que" ? "Pause"
-      : g.state === "hold" ? "Resume" : g.state === "done" ? "Download again" : "Retry";
+      : g.state === "hold" ? "Resume" : g.state === "done" ? "Re-download" : "Retry";
     const stateLine = !g.state ? "not downloaded"
       : g.state === "run" ? `downloading · ${g.pct}%`
       : g.state === "que" ? "waiting for a slot"
