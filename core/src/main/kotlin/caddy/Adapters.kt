@@ -17,13 +17,15 @@ import java.net.URLEncoder
 import java.util.concurrent.ConcurrentHashMap
 
 /** Adapter types this build implements. A repo naming anything else is skipped. */
-val BUILT_IN_ADAPTERS: Set<String> = setOf("archive_org", "minerva", "dlarchive")
+val BUILT_IN_ADAPTERS: Set<String> =
+    setOf("archive_org", "minerva", "dlarchive", "html_index")
 
 /** One registry for every caller (CLI, app), so the list cannot drift. */
 fun builtInAdapters(http: OkHttpClient): Map<String, SourceAdapter> = mapOf(
     "archive_org" to ArchiveOrgAdapter(http),
     "minerva" to MinervaAdapter(http),
     "dlarchive" to DlArchiveAdapter(http),
+    "html_index" to HtmlIndexAdapter(http),
 )
 
 /** archive.org adapter: advancedsearch.php for listings, metadata/<id> for hashes. */
@@ -162,14 +164,20 @@ open class MinervaAdapter(private val http: OkHttpClient) : SourceAdapter {
         list(source, system, 0).filter { it.title.contains(query, ignoreCase = true) }
 
     override suspend fun resolve(source: SourceConfig, entry: CatalogEntry): ResolvedDownload {
-        val doc = Jsoup.parse(fetch(pageUrl(source, entry.system)))
+        val html = fetch(pageUrl(source, entry.system))
+        val doc = Jsoup.parse(html)
         val magnet = doc.select("a[onclick*=downloadMagnet]").firstOrNull()
             ?.attr("onclick")?.let { MAGNET.find(it)?.value }
             ?: throw SourceUnavailable("no magnet on ${entry.system} page", retryable = false)
+        // The page's magnet carries no trackers; the site appends them in JS
+        // (`const trackers = "&tr=..."`). Without them a client falls back to
+        // DHT alone, which is enough for a popular collection and nothing for a
+        // quiet one — the PSX set never exchanged metadata without this.
+        val trackers = TRACKERS.find(html)?.groupValues?.get(1).orEmpty()
         val index = entry.torrentFileIndex
             ?: throw SourceUnavailable("${entry.filename} has no torrent file index", retryable = false)
         return ResolvedDownload.Torrent(
-            magnet = magnet,
+            magnet = magnet + trackers,
             fileIndex = index,
             filename = entry.filename,
             size = entry.sizeBytes,
@@ -188,6 +196,7 @@ open class MinervaAdapter(private val http: OkHttpClient) : SourceAdapter {
     private companion object {
         const val UA = "caddy/0.1"
         val MAGNET = Regex("magnet:\\?xt=urn:btih:[0-9a-fA-F]{40}[^'\"]*")
+        val TRACKERS = Regex("const trackers\\s*=\\s*\"([^\"]*)\"")
         val SIZE = Regex("([0-9.]+)\\s*(B|KB|MB|GB|TB)")
         fun parseSize(text: String): Long? {
             val m = SIZE.find(text) ?: return null

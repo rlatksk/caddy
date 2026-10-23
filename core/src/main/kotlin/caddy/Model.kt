@@ -48,6 +48,25 @@ data class SourceParams(
     val pages: Map<String, String> = emptyMap(),
     /** system -> file extensions that identify it on sources with no platform field. */
     val extensions: Map<String, List<String>> = emptyMap(),
+    /** system -> selectors, for the declarative html_index adapter. */
+    val listings: Map<String, ListingSpec> = emptyMap(),
+    /** Optional selectors for browser_capture, so its listing is not site chrome. */
+    val itemSelector: String? = null,
+    val titleSelector: String? = null,
+)
+
+/**
+ * One listing page and the selectors that read it. A repo author writes these;
+ * no per-site code exists, which is the whole point of the declarative model.
+ */
+@Serializable
+data class ListingSpec(
+    val url: String,
+    val itemSelector: String,
+    val titleSelector: String,
+    val downloadSelector: String,
+    val sizeSelector: String? = null,
+    val nextPageSelector: String? = null,
 )
 
 @Serializable

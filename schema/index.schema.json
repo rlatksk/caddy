@@ -133,10 +133,10 @@
               "transport": { "const": "http" },
               "config": {
                 "type": "object",
-                "required": ["baseUrl", "pages"],
+                "required": ["baseUrl", "listings"],
                 "properties": {
                   "baseUrl": { "type": "string", "format": "uri", "pattern": "^https://" },
-                  "pages": {
+                  "listings": {
                     "type": "object",
                     "minProperties": 1,
                     "additionalProperties": { "$ref": "#/$defs/page" },

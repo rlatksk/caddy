@@ -20,3 +20,6 @@ tools/sources.local.json
 
 # Machine-specific SDK path
 local.properties
+
+# Scratch space for local probe pages and downloads
+/.tmp/
