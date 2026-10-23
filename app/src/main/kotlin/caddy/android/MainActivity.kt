@@ -1,5 +1,6 @@
 package caddy.android
 
+import android.content.Intent
 import android.os.Bundle
 import android.text.InputType
 import android.view.KeyEvent
@@ -29,6 +30,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var jsonInput: EditText
     private lateinit var systemsContainer: LinearLayout
     private lateinit var repoSummary: TextView
+    private lateinit var romsInput: EditText
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,6 +70,17 @@ class MainActivity : AppCompatActivity() {
             setPadding(0, 16, 0, 8)
         }
 
+        romsInput = EditText(this).apply {
+            hint = "ROMs root, e.g. /storage/emulated/0/ROMs"
+            inputType = InputType.TYPE_TEXT_VARIATION_URI
+            setSingleLine(true)
+            textSize = 13f
+            setText(store.romsRoot)
+            setOnFocusChangeListener { _, focused ->
+                if (!focused && text.isNotBlank()) store.romsRoot = text.toString().trim()
+            }
+        }
+
         systemsContainer = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
 
         val addButton = Button(this).apply {
@@ -82,6 +95,12 @@ class MainActivity : AppCompatActivity() {
             text = "Remove"
             setOnClickListener { removeRepo() }
         }
+        val downloadsButton = Button(this).apply {
+            text = "Downloads"
+            setOnClickListener {
+                startActivity(Intent(this@MainActivity, DownloadsActivity::class.java))
+            }
+        }
         val refreshButton = Button(this).apply {
             text = "Refresh"
             setOnClickListener { refresh() }
@@ -93,6 +112,7 @@ class MainActivity : AppCompatActivity() {
             addView(pasteButton)
             addView(refreshButton)
             addView(removeButton)
+            addView(downloadsButton)
         }
 
         setContentView(
@@ -107,6 +127,7 @@ class MainActivity : AppCompatActivity() {
                     addView(LinearLayout(this@MainActivity).apply {
                         orientation = LinearLayout.VERTICAL
                         addView(repoSummary)
+                        addView(romsInput)
                         addView(systemsContainer)
                     })
                 })
@@ -222,7 +243,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         systems.forEach { system ->
-            val row = TextView(this).apply {
+            val label = TextView(this).apply {
                 text = "${if (system in enabled) "[x]" else "[ ]"}  $system"
                 textSize = 18f
                 typeface = android.graphics.Typeface.MONOSPACE
@@ -233,6 +254,17 @@ class MainActivity : AppCompatActivity() {
                     store.toggleSystem(system)
                     render()
                 }
+            }
+            val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+            row.addView(label, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+            if (system in enabled) {
+                row.addView(Button(this).apply {
+                    text = "Browse"
+                    setOnClickListener {
+                        if (romsInput.text.isNotBlank()) store.romsRoot = romsInput.text.toString().trim()
+                        startActivity(Intent(this@MainActivity, BrowseActivity::class.java).putExtra("system", system))
+                    }
+                })
             }
             systemsContainer.addView(row)
         }

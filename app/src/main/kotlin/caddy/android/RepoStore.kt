@@ -35,6 +35,11 @@ class RepoStore(context: Context) {
         get() = prefs.getStringSet(KEY_SYSTEMS, emptySet()) ?: emptySet()
         set(value) = prefs.edit().putStringSet(KEY_SYSTEMS, value).apply()
 
+    /** Real filesystem path: ES-DE reads ROMs/<system>/, and streaming writes need a File. */
+    var romsRoot: String
+        get() = prefs.getString(KEY_ROMS, null) ?: "/storage/emulated/0/ROMs"
+        set(value) = prefs.edit().putString(KEY_ROMS, value).apply()
+
     fun toggleSystem(system: String): Set<String> {
         val next = enabledSystems.toMutableSet()
         if (!next.add(system)) next.remove(system)
@@ -62,8 +67,9 @@ class RepoStore(context: Context) {
         private const val KEY_URL = "indexUrl"
         private const val KEY_FETCHED = "lastFetch"
         private const val KEY_SYSTEMS = "enabledSystems"
+        private const val KEY_ROMS = "romsRoot"
 
         /** Adapter types this build understands. Must match the app's registry. */
-        val KNOWN_ADAPTERS = setOf("archive_org", "minerva", "html_index", "browser_capture")
+        val KNOWN_ADAPTERS = caddy.BUILT_IN_ADAPTERS
     }
 }
