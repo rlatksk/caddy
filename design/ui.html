@@ -156,6 +156,16 @@
   .row[aria-selected="true"] .s.is-done{color:#1c6b3a}
   .row[aria-selected="true"] .s.is-fail{color:#a3262a}
 
+  /* Focus: the list already inverts its selected row, so the cursor and the
+     selection are the same thing there. Everything else takes a hairline
+     offset ring in the paper colour, which is how this world draws a box. */
+  .app :focus{outline:none}
+  .focusable.is-focused{outline:1px solid var(--fg);outline-offset:-1px}
+  .row.is-focused{outline:1px solid var(--fg);outline-offset:-1px}
+  .qrow.is-focused{background:#141718;outline:1px solid var(--fg);outline-offset:-1px}
+  .sys.is-focused{outline:1px solid var(--fg);outline-offset:-1px}
+  .sys[aria-current="true"].is-focused{outline-color:var(--paper)}
+
   .s.is-run{color:var(--amber)}
   .s.is-done{color:var(--green)}
   .s.is-fail{color:var(--red)}
@@ -171,10 +181,10 @@
     border-left:1px solid var(--line);padding:11px 12px 10px;
     display:flex;flex-direction:column;min-height:0;overflow:hidden;
   }
-  .poster-row{display:grid;grid-template-columns:112px 1fr;gap:10px;flex:none}
+  .poster-row{display:grid;grid-template-columns:auto 1fr;gap:10px;flex:none;align-items:start}
   .poster{
-    width:112px;aspect-ratio:479/680;background:#0e1011;border:1px solid #222526;
-    position:relative;overflow:hidden;display:grid;place-items:center;
+    width:112px;height:160px;background:#0e1011;border:1px solid #222526;
+    position:relative;overflow:hidden;display:grid;place-items:center;flex:none;
   }
   .poster img{width:100%;height:100%;object-fit:contain;display:block}
   .poster .ph{
@@ -404,6 +414,7 @@
     { id: "nds", name: "NDS", count: 6074 },
     { id: "switch", name: "Switch", count: 2107 },
   ];
+  const SYSTEM_NAME = Object.fromEntries(SYSTEMS.map((s) => [s.id, s.name]));
 
   const GAMES = {
     genesis: [
@@ -516,6 +527,7 @@
     document.getElementById("screenLabel").textContent =
       { browse: "Browse", queue: "Queue", sources: "Sources", firstrun: "First run" }[S.screen];
     if (S.screen === "browse") hydratePoster();
+    applyFocus();
   }
 
   function shell() {
@@ -524,10 +536,10 @@
         <div class="rail-h">Systems</div>
         <div class="systems">${railSystems()}</div>
         <div class="rail-foot">
-          <button class="rail-btn" data-go="queue">
+          <button class="rail-btn focusable" data-go="queue" data-zone="rail">
             ${ICON.queue}<span>Queue</span><span class="count">${activeCount()}</span>
           </button>
-          <button class="rail-btn" data-go="sources">
+          <button class="rail-btn focusable" data-go="sources" data-zone="rail">
             ${ICON.gear}<span>Sources</span>
           </button>
         </div>
@@ -540,7 +552,7 @@
     const list = SYSTEMS.filter((s) => S.enabled.includes(s.id));
     if (!list.length) return `<div class="empty" style="padding:14px 11px;font-size:11px">No systems enabled.</div>`;
     return list.map((s) => `
-      <button class="sys" data-sys="${s.id}" aria-current="${s.id === S.system}">
+      <button class="sys focusable" data-sys="${s.id}" data-zone="rail" aria-current="${s.id === S.system}">
         <span class="nm">${esc(s.name)}</span><span class="n">${s.count}</span>
       </button>`).join("");
   }
@@ -560,7 +572,7 @@
       <div class="head">
         <div class="search-row">
           <div class="search">${ICON.search}
-            <input id="q" type="text" placeholder="Search ${esc(systemName(S.system))}" aria-label="Search titles">
+            <input id="q" data-zone="search" type="text" placeholder="Search ${esc(systemName(S.system))}" aria-label="Search titles">
           </div>
           <button class="icon-btn" data-go="sources" aria-label="Sources and settings">${ICON.gear}</button>
         </div>
@@ -578,7 +590,7 @@
           <div class="rows">
             ${rows.length ? rows.map(rowHtml).join("") : `<div class="empty">${games().length
               ? `Nothing matches <b>${esc(filterName(S.filter))}</b> in this system.`
-              : `<b>${esc(systemName(S.system))}</b> has no listing loaded in this prototype.<br>On the device the list arrives from the source when you open the system.`}</div>`}
+              : `<b>${esc(systemName(S.system))}</b> has no listing in this prototype.<br>On the device the list arrives from the source when you open the system.`}</div>`}
           </div>
         </div>
         ${g ? detailHtml(g) : `<aside class="detail"><div class="syn">No title selected.</div></aside>`}
@@ -587,13 +599,13 @@
   }
 
   const chip = (id, label, n) => `
-    <button class="chip" data-filter="${id}" aria-pressed="${S.filter === id}">${label} ${n}</button>`;
+    <button class="chip focusable" data-filter="${id}" data-zone="filters" aria-pressed="${S.filter === id}">${label} ${n}</button>`;
 
   function rowHtml(g, i) {
     const word = g.state ? STATE_WORD[g.state](g) : "—";
     const cls = g.state ? STATE_CLASS[g.state] : "";
     return `
-      <button class="row" data-row="${i}" aria-selected="${i === S.selected}">
+      <button class="row" data-row="${i}" data-zone="list" aria-selected="${i === S.selected}">
         <span class="t">${esc(g.t)}</span>
         <span class="z">${esc(g.z)}</span>
         <span class="s ${cls}">${esc(word)}</span>
@@ -610,16 +622,16 @@
       : `<b style="color:var(--red)">Failed</b> · ${esc(g.why || "see queue")}`;
 
     const action = !g.state
-      ? `<button class="btn primary">${ICON.dl}<span>Download</span><span class="r">${esc(g.z)}</span></button>`
+      ? `<button class="btn primary focusable" data-zone="detail">${ICON.dl}<span>Download</span><span class="r">${esc(g.z)}</span></button>`
       : g.state === "run"
-        ? `<button class="btn">${ICON.pause}<span>Pause</span><span class="r">${g.pct}%</span></button>`
+        ? `<button class="btn focusable" data-zone="detail">${ICON.pause}<span>Pause</span><span class="r">${g.pct}%</span></button>`
       : g.state === "pause"
-        ? `<button class="btn">${ICON.play}<span>Resume</span><span class="r">${esc(g.bytes || "")}</span></button>`
+        ? `<button class="btn focusable" data-zone="detail">${ICON.play}<span>Resume</span><span class="r">${esc(g.bytes || "")}</span></button>`
       : g.state === "que"
-        ? `<button class="btn">${ICON.pause}<span>Pause</span><span class="r">waiting</span></button>`
+        ? `<button class="btn focusable" data-zone="detail">${ICON.pause}<span>Pause</span><span class="r">waiting</span></button>`
       : g.state === "done"
-        ? `<button class="btn quiet">${ICON.dl}<span>Download again</span></button>`
-        : `<button class="btn">${ICON.play}<span>Retry</span><span class="r">attempt 2 of 3</span></button>`;
+        ? `<button class="btn quiet focusable" data-zone="detail">${ICON.dl}<span>Download again</span></button>`
+        : `<button class="btn focusable" data-zone="detail">${ICON.play}<span>Retry</span><span class="r">attempt 2 of 3</span></button>`;
 
     return `
       <aside class="detail">
@@ -645,15 +657,47 @@
       </aside>`;
   }
 
+  const artCache = new Map();
+  let artTimer = null;
+
   function hydratePoster() {
     const g = visible()[S.selected];
+    if (!g || !g.art) return;
     const box = document.getElementById("poster");
-    if (!g || !box || !g.art) return;
+    if (!box) return;
+    const cached = artCache.get(g.art);
+    if (cached) { placeArt(box, cached); return; }
+    clearTimeout(artTimer);
+    artTimer = setTimeout(() => loadArt(box, g.art), 110);
+  }
+
+  function loadArt(box, url) {
     const img = new Image();
     img.alt = "";
     img.decoding = "async";
-    img.onload = () => { box.classList.add("has-art"); box.appendChild(img); };
-    img.src = g.art;
+    img.onload = () => {
+      artCache.set(url, img);
+      if (document.getElementById("poster") === box) placeArt(box, img);
+    };
+    img.src = url;
+  }
+
+  /**
+   * The frame takes the art's ratio. Covers run from tall Japanese boxes
+   * (~0.6) through square to wide for odd scans; one fixed frame letterboxed
+   * every one of those into dead space.
+   */
+  function placeArt(box, img) {
+    const ar = img.naturalWidth / img.naturalHeight;
+    const MAX_H = 160, MAX_W = 210;
+    let h = MAX_H, w = Math.round(h * ar);
+    if (w > MAX_W) { w = MAX_W; h = Math.round(w / ar); }
+    box.style.width = w + "px";
+    box.style.height = h + "px";
+    box.classList.add("has-art");
+    const old = box.querySelector("img");
+    if (old) old.remove();
+    box.appendChild(img);
   }
 
   function queueScreen() {
@@ -664,16 +708,16 @@
         <h2>Queue</h2>
         <span class="sum">${run} downloading · ${wait} waiting · 41.2 GB free</span>
         <div class="sp">
-          <button class="qbtn" data-queue="${S.queuePaused ? "resume" : "pause"}">
+          <button class="qbtn focusable" data-queue="${S.queuePaused ? "resume" : "pause"}" data-zone="qhead">
             ${S.queuePaused ? ICON.play : ICON.pause}<span>${S.queuePaused ? "Resume all" : "Pause all"}</span>
           </button>
-          <button class="qbtn" data-queue="clear">${ICON.x}<span>Clear finished</span></button>
+          <button class="qbtn focusable" data-queue="clear" data-zone="qhead">${ICON.x}<span>Clear finished</span></button>
         </div>
       </div>
-      <div class="qlist">${QUEUE.map(queueRow).join("")}</div>`;
+      <div class="qlist">${QUEUE.map((q, i) => queueRow(q, i)).join("")}</div>`;
   }
 
-  function queueRow(q) {
+  function queueRow(q, i) {
     const cells = 10;
     const filled = Math.round((q.pct / 100) * cells);
     const cls = q.state === "done" ? "dn" : q.state === "pause" ? "pz" : q.state === "fail" ? "pk" : "on";
@@ -683,7 +727,7 @@
     const canPause = q.state === "run" || q.state === "que";
     const canResume = q.state === "pause" || q.state === "fail";
     return `
-      <div class="qrow">
+      <div class="qrow" data-qrow="${i}" data-zone="qlist">
         <div>
           <div class="qt">${esc(q.t)}</div>
           <div class="qm">${esc(q.sys)} · ${esc(q.speed)}</div>
@@ -705,9 +749,9 @@
         <div>
           <h2>Repository</h2>
           <div class="field" style="margin-top:6px">
-            <input type="text" value="https://example.net/caddy/index.json" aria-label="Repository URL">
-            <button class="qbtn">Refresh</button>
-            <button class="qbtn">Remove</button>
+            <input type="text" data-zone="field" value="https://example.net/caddy/index.json" aria-label="Repository URL">
+            <button class="qbtn focusable" data-zone="field">Refresh</button>
+            <button class="qbtn focusable" data-zone="field">Remove</button>
           </div>
           <div class="hint" style="margin-top:5px">2 sources · 14 systems offered</div>
         </div>
@@ -716,7 +760,7 @@
           <h2>Systems in the app — ${S.enabled.length} of ${ALL_SYSTEMS.length}</h2>
           <div class="sysgrid" style="margin-top:6px">
             ${ALL_SYSTEMS.map((s) => `
-              <button class="syscell" data-toggle-sys="${s.nm}" aria-pressed="${S.enabled.includes(s.nm)}">
+              <button class="syscell focusable" data-toggle-sys="${s.nm}" data-zone="grid" aria-pressed="${S.enabled.includes(s.nm)}">
                 <span class="box"></span><span class="nm">${esc(s.nm)}</span><span class="n">${s.n}</span>
               </button>`).join("")}
           </div>
@@ -726,7 +770,7 @@
         <div>
           <h2>Metadata</h2>
           <div style="display:flex;flex-direction:column;gap:7px;margin-top:6px">
-            <button class="toggle" data-toggle-meta aria-pressed="${S.metadata}">
+            <button class="toggle focusable" data-toggle-meta data-zone="meta" aria-pressed="${S.metadata}">
               <span class="sw"></span>
               <span class="txt">Fetch box art and descriptions for the selected title</span>
             </button>
@@ -740,7 +784,7 @@
 
         <div class="field">
           <label>ROMs root</label>
-          <input type="text" value="/storage/emulated/0/ROMs" aria-label="ROMs root">
+          <input type="text" data-zone="field" value="/storage/emulated/0/ROMs" aria-label="ROMs root">
         </div>
 
         <div class="foot-note">
@@ -774,7 +818,7 @@
       </div>`;
   }
 
-  const systemName = (id) => (SYSTEMS.find((s) => s.id === id) || {}).name || id;
+  const systemName = (id) => SYSTEM_NAME[id] || id;
   const filterName = (f) => ({ all: "All", disk: "On disk", queue: "In queue", fail: "Failed" }[f]);
 
   // ---------- interaction ----------
@@ -786,15 +830,28 @@
       document.querySelectorAll(".tab").forEach((b) => b.setAttribute("aria-selected", String(b === t)));
       S.screen = t.dataset.screen;
       render();
+      enterZone(S.screen === "queue" ? "qlist" : S.screen === "sources" ? "grid" : "list", 0);
       return;
     }
     if (t.dataset.sys) {
       S.system = t.dataset.sys; S.selected = 0; S.filter = "all";
       S.screen = "browse"; syncTabs(); render(); return;
     }
-    if (t.dataset.go) { S.screen = t.dataset.go; syncTabs(); render(); return; }
-    if (t.dataset.filter) { S.filter = t.dataset.filter; S.selected = 0; render(); return; }
-    if (t.dataset.row !== undefined) { S.selected = Number(t.dataset.row); render(); return; }
+    if (t.dataset.go) {
+      S.screen = t.dataset.go; syncTabs(); render();
+      enterZone(S.screen === "queue" ? "qlist" : "grid", 0);
+      return;
+    }
+    if (t.dataset.filter) {
+      S.filter = t.dataset.filter; S.selected = 0; render();
+      enterZone("filters", F.zone === "filters" ? F.index : 0);
+      return;
+    }
+    if (t.dataset.row !== undefined) {
+      S.selected = Number(t.dataset.row); render();
+      enterZone("list", S.selected);
+      return;
+    }
     if (t.dataset.queue) {
       if (t.dataset.queue === "pause") S.queuePaused = true;
       if (t.dataset.queue === "resume") S.queuePaused = false;
@@ -819,13 +876,182 @@
       b.setAttribute("aria-selected", String(b.dataset.screen === S.screen)));
   }
 
+  // ---------------------------------------------------------------
+  // Gamepad. The D-pad is the primary input on this device, so every
+  // control is reachable without touching the screen. The spatial model
+  // is the same everywhere: up/down walks a column, left walks back
+  // toward the rail, right walks toward the detail pane.
+  // ---------------------------------------------------------------
+  const ZONES = {
+    browse: ["rail", "search", "filters", "list", "detail"],
+    queue: ["rail", "qhead", "qlist"],
+    sources: ["rail", "field", "grid", "meta"],
+    firstrun: ["center"],
+  };
+  const F = { zone: "list", index: 0 };
+
+  function zoneEls(zone) {
+    if (zone === "center") return [...document.querySelectorAll(".firstrun .qbtn")];
+    return [...document.querySelectorAll(`[data-zone="${zone}"]`)].filter((el) => el.offsetParent !== null);
+  }
+
+  function applyFocus() {
+    document.querySelectorAll(".is-focused").forEach((el) => el.classList.remove("is-focused"));
+    let els = zoneEls(F.zone);
+    // An empty system has no rows to sit on, so the cursor parks in the rail
+    // rather than vanishing with no visible focus anywhere.
+    if (!els.length && F.zone !== "rail") {
+      F.zone = "rail"; F.index = 0;
+      els = zoneEls("rail");
+    }
+    if (!els.length) return;
+    F.index = Math.max(0, Math.min(els.length - 1, F.index));
+    const el = els[F.index];
+    el.classList.add("is-focused");
+    if (F.zone === "list") S.selected = F.index;
+    const box = el.closest(".rows, .qlist, .systems");
+    if (box && box.scrollHeight > box.clientHeight) {
+      const top = el.offsetTop - box.offsetTop;
+      const bottom = top + el.offsetHeight;
+      if (top < box.scrollTop) box.scrollTop = top;
+      else if (bottom > box.scrollTop + box.clientHeight) box.scrollTop = bottom - box.clientHeight;
+    }
+  }
+
+  function moveFocus(dir) {
+    const order = ZONES[S.screen] || ZONES.browse;
+    const at = order.indexOf(F.zone);
+    const step = (d) => {
+      const n = zoneEls(F.zone).length;
+      if (!n) return false;
+      const next = F.index + d;
+      if (next < 0 || next >= n) return false;
+      F.index = next;
+      return true;
+    };
+    const go = (zone, i) => { F.zone = zone; F.index = i || 0; return true; };
+    const left = dir === "ArrowLeft", right = dir === "ArrowRight";
+
+    if (F.zone === "rail") {
+      if (left) return false;
+      if (right) return go(order[1] === "search" ? "filters" : order[1]);
+      return step(dir === "ArrowDown" ? 1 : -1);
+    }
+    if (F.zone === "grid") {
+      const cols = 4, n = zoneEls("grid").length;
+      if (left) return step(-1) || go("field");
+      if (right) return step(1);
+      if (dir === "ArrowUp") return F.index - cols >= 0 ? (F.index -= cols, true) : go("field");
+      // Past the last row the grid hands the cursor down to the metadata
+      // toggle, so every control on this screen is reachable with the D-pad.
+      if (dir === "ArrowDown") return F.index + cols < n ? (F.index += cols, true) : go("meta");
+      return false;
+    }
+    if (F.zone === "list") {
+      if (left) return go("rail");
+      if (right) return go("detail");
+      return step(dir === "ArrowDown" ? 1 : -1) || (dir === "ArrowUp" ? go("filters") : false);
+    }
+    if (F.zone === "detail") {
+      if (left) return go("list", S.selected);
+      if (dir === "ArrowUp") return go("filters");
+      return false;
+    }
+    if (F.zone === "filters") {
+      if (left) return step(-1) || go("rail");
+      if (right) return step(1);
+      if (dir === "ArrowUp") return go("search");
+      return go("list");
+    }
+    if (F.zone === "search") {
+      return dir === "ArrowDown" ? go("filters") : false;
+    }
+    if (F.zone === "qlist") {
+      if (left) return go("rail");
+      return step(dir === "ArrowDown" ? 1 : -1) || (dir === "ArrowUp" ? go("qhead") : false);
+    }
+    if (F.zone === "qhead") {
+      if (left) return step(-1) || go("rail");
+      if (right) return step(1);
+      return dir === "ArrowDown" ? go("qlist") : false;
+    }
+    if (F.zone === "field" || F.zone === "meta") {
+      if (left) return go("rail");
+      if (right) return go("grid");
+      if (F.zone === "meta" && dir === "ArrowUp") {
+        const n = zoneEls("grid").length;
+        return n ? go("grid", n - 1) : false;
+      }
+      return step(dir === "ArrowDown" ? 1 : -1);
+    }
+    if (F.zone === "center") return step(left || dir === "ArrowUp" ? -1 : 1);
+    return false;
+  }
+
+  function enterZone(zone, index) {
+    F.zone = zone;
+    F.index = index || 0;
+    applyFocus();
+  }
+
   document.addEventListener("keydown", (e) => {
-    if (S.screen !== "browse") return;
-    if (e.target.tagName === "INPUT") return;
-    const rows = visible();
-    if (e.key === "ArrowDown") { e.preventDefault(); S.selected = Math.min(rows.length - 1, S.selected + 1); render(); }
-    if (e.key === "ArrowUp") { e.preventDefault(); S.selected = Math.max(0, S.selected - 1); render(); }
-    if (e.key === "Enter" && rows[S.selected]) { /* download */ }
+    const typing = e.target.tagName === "INPUT";
+
+    if (typing) {
+      if (e.key === "ArrowDown" || e.key === "Enter") {
+        e.preventDefault(); e.target.blur();
+        F.zone = "search"; F.index = 0;
+        if (moveFocus("ArrowDown")) render();
+      } else if (e.key === "Escape") {
+        e.preventDefault(); e.target.blur(); render();
+      }
+      return;
+    }
+
+    if (e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "ArrowUp" || e.key === "ArrowDown") {
+      e.preventDefault();
+      if (moveFocus(e.key)) render();
+      return;
+    }
+
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const el = zoneEls(F.zone)[F.index];
+      if (!el) return;
+      if (el.tagName === "INPUT") { el.focus(); el.select(); return; }
+      if (el.dataset.qrow !== undefined) {
+        const q = QUEUE[Number(el.dataset.qrow)];
+        if (!q) return;
+        q.state = (q.state === "pause" || q.state === "fail") ? "run" : q.state === "done" ? "done" : "pause";
+        render();
+        return;
+      }
+      el.click();
+      return;
+    }
+
+    if (e.key === "Backspace" || e.key === "Escape") {
+      e.preventDefault();
+      if (S.screen !== "browse") {
+        S.screen = "browse"; syncTabs(); render(); enterZone("list", S.selected);
+      }
+      return;
+    }
+
+    if (e.key === "x" || e.key === "X") {
+      e.preventDefault();
+      if (S.screen !== "queue") { S.screen = "queue"; syncTabs(); render(); enterZone("qlist", 0); }
+      return;
+    }
+    if (e.key === "y" || e.key === "Y") {
+      e.preventDefault();
+      if (S.screen === "browse") {
+        enterZone("search", 0);
+        const box = document.getElementById("q");
+        if (box) { box.focus(); box.select(); }
+      }
+      return;
+    }
   });
 
   // fit to viewport without upscaling
@@ -837,6 +1063,7 @@
   window.addEventListener("resize", fit);
   fit();
   render();
+  enterZone("list", 0);
 })();
 </script>
 </body>
