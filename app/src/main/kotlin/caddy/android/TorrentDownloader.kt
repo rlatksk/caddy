@@ -42,6 +42,26 @@ class TorrentDownloader(private val http: OkHttpClient, private val context: and
         val session = SessionManager()
         session.start()
         android.util.Log.i(TAG, "session started")
+        session.addListener(object : AlertListener {
+            // Metadata failures are otherwise silent: the handle exists, peers
+            // connect, and nothing is downloaded.
+            // Only what matters for a stalled fetch; the full mask floods logcat
+            // with session stats every second.
+            override fun types(): IntArray = intArrayOf(
+                AlertType.ADD_TORRENT.swig(),
+                AlertType.METADATA_RECEIVED.swig(),
+                AlertType.METADATA_FAILED.swig(),
+                AlertType.TORRENT_ERROR.swig(),
+                AlertType.TORRENT_FINISHED.swig(),
+                AlertType.FILE_ERROR.swig(),
+                AlertType.TRACKER_ERROR.swig(),
+                AlertType.TRACKER_REPLY.swig(),
+            )
+
+            override fun alert(alert: Alert<*>) {
+                android.util.Log.w(TAG, "alert ${alert.type()} ${alert.message()}")
+            }
+        })
         try {
             session.download(resolved.magnet, staging, TorrentFlags.SEQUENTIAL_DOWNLOAD)
 
@@ -128,6 +148,7 @@ class TorrentDownloader(private val http: OkHttpClient, private val context: and
         while (System.currentTimeMillis() < deadline) {
             val status = handle.status()
             if (status.hasMetadata()) return
+            android.util.Log.i(TAG, "waiting metadata: peers=${status.numPeers()} state=${status.state()}")
             if (status.errorCode().isError) {
                 throw SourceUnavailable("torrent error: ${status.errorCode().getValue()}", retryable = true)
             }
@@ -140,6 +161,6 @@ class TorrentDownloader(private val http: OkHttpClient, private val context: and
         const val TAG = "caddy-torrent"
         const val STAGING_DIR = ".caddy-torrent"
         const val POLL_MS = 500L
-        const val METADATA_TIMEOUT_MS = 120_000L
+        const val METADATA_TIMEOUT_MS = 240_000L
     }
 }

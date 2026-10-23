@@ -172,7 +172,18 @@ class DownloadService : Service() {
      * repo that serves the system. Source rot is the top risk in this app, so a
      * dead source must cost one attempt, not the download.
      */
-    private suspend fun resolve(row: DownloadQueue.Row): Pair<SourceConfig, ResolvedDownload> {
+    private suspend fun resolve(row: DownloadQueue.Row): Pair<SourceConfig?, ResolvedDownload> {
+        // Captured rows already hold the final URL: the WebView did the work.
+        if (row.sourceId == DownloadQueue.CAPTURED_SOURCE) {
+            val url = row.sourceRef
+                ?: throw SourceUnavailable("captured row has no URL", retryable = false)
+            return null to ResolvedDownload.Direct(
+                url = url,
+                filename = row.filename,
+                size = row.sizeBytes.takeIf { it > 0 },
+                hashes = caddy.Hashes(),
+            )
+        }
         val index = parseIndex(store.indexJson ?: error("no repository"), RepoStore.KNOWN_ADAPTERS)
         val entry = CatalogEntry(
             system = row.system,

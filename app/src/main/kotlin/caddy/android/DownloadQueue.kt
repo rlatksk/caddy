@@ -4,6 +4,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import caddy.KIND_BASE
 
 /**
  * The download queue, on disk.
@@ -100,6 +101,25 @@ class DownloadQueue(context: Context) {
         return writable().insert("downloads", null, values)
     }
 
+    /**
+     * A URL the user captured in the WebView. There is no source to resolve
+     * again, so the URL is stored and handed straight to the HTTP executor.
+     */
+    fun enqueueCaptured(system: String, title: String, filename: String, url: String): Long {
+        val values = ContentValues().apply {
+            put("system", system)
+            put("title", title)
+            put("filename", filename)
+            put("kind", KIND_BASE)
+            put("sourceId", CAPTURED_SOURCE)
+            put("sourceRef", url)
+            put("sizeBytes", 0L)
+            put("state", STATE_QUEUED)
+            put("createdAt", System.currentTimeMillis())
+        }
+        return writable().insert("downloads", null, values)
+    }
+
     fun next(limit: Int): List<Row> = readable().query(
         "downloads", null, "state = ?", arrayOf(STATE_QUEUED), null, null, "createdAt", limit.toString(),
     ).use { cursor -> buildList { while (cursor.moveToNext()) add(cursor.toRow()) } }
@@ -181,5 +201,8 @@ class DownloadQueue(context: Context) {
         const val STATE_PAUSED = "paused"
         const val STATE_DONE = "done"
         const val STATE_FAILED = "failed"
+
+        /** Marks a row whose URL came from the browser-capture WebView. */
+        const val CAPTURED_SOURCE = "__capture"
     }
 }

@@ -60,7 +60,6 @@ class BrowseActivity : AppCompatActivity() {
 
     private var entries: List<CatalogEntry> = emptyList()
     private var busy = false
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         store = RepoStore(this)
@@ -207,6 +206,10 @@ class BrowseActivity : AppCompatActivity() {
     private fun download(entry: CatalogEntry) {
         if (!hasStorageAccess()) {
             requestStorageAccess()
+            return
+        }
+        if (source.transport == caddy.Transport.BROWSER) {
+            status.text = "${source.name} needs a browser session; not supported"
             return
         }
         val id = DownloadQueue(this).enqueue(
