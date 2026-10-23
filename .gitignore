@@ -23,3 +23,9 @@ local.properties
 
 # Scratch space for local probe pages and downloads
 /.tmp/
+
+# Release signing material. Never committed: the keystore is what proves an
+# update came from this project.
+/keystore.properties
+*.jks
+*.keystore
