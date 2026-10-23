@@ -1,0 +1,642 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Caddy — UI directions</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:#101113;color:#c6c6c1;
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:#3a3d42;color:#fff}
+  .wrap{max-width:1800px;margin:0 auto;padding:26px 24px 70px}
+  .top{display:flex;align-items:baseline;gap:18px;flex-wrap:wrap;border-bottom:1px solid #26272a;padding-bottom:13px;margin-bottom:26px}
+  .top h1{font-size:14px;letter-spacing:.2em;text-transform:uppercase;color:#ecece8;margin:0;font-weight:600}
+  .top p{margin:0;font-size:12px;color:#8b8b86;line-height:1.5}
+  .top p b{color:#c6c6c1;font-weight:600}
+
+  section.dir{margin:0 0 44px}
+  .dirhead{display:flex;align-items:baseline;gap:14px;margin:0 0 3px}
+  .dirhead h2{font-size:20px;margin:0;color:#ecece8;letter-spacing:-.01em;font-weight:600}
+  .dirhead span{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#8f8f8a}
+  .dirnote{font-size:13px;color:#9b9b96;max-width:92ch;margin:0 0 13px;line-height:1.55}
+  .pair{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-start}
+  .frame{display:flex;flex-direction:column;gap:6px}
+  .flabel{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#8f8f8a;padding-left:1px}
+  .scale{zoom:var(--s,1)}
+  .app{
+    width:832px;height:444px;overflow:hidden;position:relative;
+    display:grid;grid-template-columns:var(--rail) 1fr;
+    outline:1px solid #2a2b2e;outline-offset:0;
+  }
+  .app .main{display:flex;flex-direction:column;min-height:0;overflow:hidden}
+  .app .body{flex:1;min-height:0}
+  .spec-line{font-size:11.5px;color:#94948e;margin:11px 0 0;line-height:1.6;max-width:110ch}
+  .spec-line b{color:#a5a59f;font-weight:600}
+
+  /* ============ PRESS SHEET ============ */
+  .w-press{
+    --paper:#f4f1e8;--mute:#a8a29a;--line:#2b2925;--line2:#201e1b;--spot:#e8402a;--ok:#6fd39a;--bad:#ff6a52;
+    --rail:96px;
+    background:#0d0c0b;color:var(--paper);
+    font-family:Roboto,"Helvetica Neue",Arial,sans-serif;font-size:13px;
+  }
+  .w-press .rail{border-right:1px solid var(--line);display:flex;flex-direction:column;padding:6px 0;background:#0b0a09}
+  .w-press .sys{padding:8px 12px;display:flex;flex-direction:column;gap:1px;border-bottom:1px solid #1c1a18}
+  .w-press .code{font-size:12px;font-weight:800;letter-spacing:.08em}
+  .w-press .n{font-size:11px;color:#8f8a82;font-variant-numeric:tabular-nums;letter-spacing:.04em}
+  .w-press .sys.on{background:var(--paper);color:#0d0c0b}
+  .w-press .sys.on .n{color:#5a564f}
+  .w-press .railfoot{margin-top:auto;padding:9px 12px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#8f8a82;border-top:1px solid var(--line)}
+  .w-press .railfoot b{color:var(--paper);font-weight:700}
+  .w-press .bar{height:62px;padding:0 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);flex:none}
+  .w-press h1{margin:0;font-size:24px;font-weight:800;letter-spacing:-.015em;text-transform:uppercase;line-height:1}
+  .w-press .meta{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);margin-top:5px}
+  .w-press .q{width:186px;background:transparent;border:0;border-bottom:1px solid #4a463f;color:var(--paper);font:inherit;font-size:12px;padding:6px 2px;outline:none}
+  .w-press .q::placeholder{color:#8f8a82}
+  .w-press .q:focus{border-bottom-color:var(--paper)}
+  .w-press .body{display:grid;grid-template-columns:1fr 300px;min-height:0}
+  .w-press .list{overflow:hidden}
+  .w-press .row{height:56px;padding:0 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line2);cursor:default}
+  .w-press .row .tt{font-size:15.5px;font-weight:700;letter-spacing:-.005em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .w-press .row .mm{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin-top:3px}
+  .w-press .row.on{background:var(--paper);color:#0d0c0b}
+  .w-press .row.on .mm{color:#5a564f}
+  .w-press .spec{display:grid;grid-template-columns:58px 38px 36px;border:1px solid #3a3733;flex:none}
+  .w-press .spec b{padding:5px 0;text-align:center;font-size:11px;font-weight:600;letter-spacing:.04em;font-variant-numeric:tabular-nums}
+  .w-press .spec b+b{border-left:1px solid #3a3733}
+  .w-press .row.on .spec{border-color:rgba(13,12,11,.3)}
+  .w-press .row.on .spec b+b{border-left-color:rgba(13,12,11,.3)}
+  .w-press .detail{border-left:1px solid var(--line);padding:12px 16px 12px;position:relative;overflow:hidden}
+  .w-press .detail::before{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(244,241,232,.10) .7px,transparent .8px);background-size:5px 5px;opacity:.55;pointer-events:none}
+  .w-press .detail>*{position:relative}
+  .w-press .kick{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+  .w-press h2{margin:6px 0 3px;font-size:21px;line-height:1.08;font-weight:800;letter-spacing:-.01em}
+  .w-press .facts{display:grid;grid-template-columns:70px 1fr;gap:6px 8px;margin:10px 0 0;font-size:12px}
+  .w-press .facts dt{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);padding-top:2px}
+  .w-press .facts dd{margin:0;font-variant-numeric:tabular-nums}
+  .w-press .btn{margin-top:11px;background:var(--paper);color:#0d0c0b;display:flex;align-items:center;justify-content:space-between;padding:11px 13px;font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+  .w-press .btn span{font-weight:500;letter-spacing:.08em;opacity:.65}
+  .w-press .ghost{margin-top:6px;border:1px solid #3a3733;color:var(--paper);display:flex;justify-content:space-between;padding:8px 13px;font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+  .w-press .queue{padding:0 18px;display:flex;flex-direction:column;overflow:hidden}
+  .w-press .qsum{display:flex;justify-content:space-between;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);padding:11px 0 9px;border-bottom:1px solid var(--line)}
+  .w-press .qrow{display:grid;grid-template-columns:1fr 152px;gap:14px;align-items:center;height:58px;border-bottom:1px solid var(--line2)}
+  .w-press .qrow .tt{font-size:14.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .w-press .qrow .mm{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin-top:2px}
+  .w-press .stamp{border:1.5px solid;padding:5px 0;text-align:center;font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+  .w-press .stamp.run{border-color:var(--paper);color:var(--paper)}
+  .w-press .stamp.done{border-color:var(--ok);color:var(--ok)}
+  .w-press .stamp.fail{border-color:var(--bad);color:var(--bad)}
+  .w-press .stamp.que{border-color:#57534d;color:var(--mute)}
+
+  /* ============ DAT SHEET ============ */
+  .w-dat{
+    --fg:#d7d9d6;--mute:#7d827c;--line:#1c1e1f;--line2:#141617;--amber:#f0b429;--green:#3ecf72;--red:#ff6b6e;
+    --rail:88px;
+    background:#08090a;color:var(--fg);
+    font-family:ui-monospace,"SF Mono","Roboto Mono",Menlo,Consolas,monospace;
+    font-size:12.5px;font-variant-numeric:tabular-nums;
+  }
+  .w-dat .rail{border-right:1px solid var(--line);padding:5px 0;display:flex;flex-direction:column}
+  .w-dat .sys{padding:8px 10px;display:flex;justify-content:space-between;font-size:11.5px}
+  .w-dat .sys .n{color:var(--mute)}
+  .w-dat .sys.on{background:var(--fg);color:#08090a}
+  .w-dat .sys.on .n{color:#4a4d48}
+  .w-dat .railfoot{margin-top:auto;padding:9px 10px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);border-top:1px solid var(--line)}
+  .w-dat .bar{height:46px;padding:0 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);flex:none}
+  .w-dat h1{margin:0;font-size:12px;letter-spacing:.18em;text-transform:uppercase;font-weight:500}
+  .w-dat .meta{font-size:11px;color:var(--mute);letter-spacing:.04em;margin-top:3px}
+  .w-dat .q{background:#0e1011;border:1px solid #222526;color:var(--fg);font:inherit;font-size:11.5px;padding:5px 8px;width:196px;outline:none}
+  .w-dat .q::placeholder{color:#8b908a}
+  .w-dat .q:focus{border-color:var(--fg)}
+  .w-dat .body{display:grid;grid-template-columns:1fr 316px;min-height:0}
+  .w-dat .list{overflow:hidden}
+  .w-dat .cols,.w-dat .row{display:grid;grid-template-columns:1fr 38px 58px 58px;gap:5px;align-items:center;padding:0 14px}
+  .w-dat .cols{height:22px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);border-bottom:1px solid var(--line);background:#0b0c0d}
+  .w-dat .cols b{font-weight:400}
+  .w-dat .cols b:nth-child(n+2){text-align:right}
+  .w-dat .row{height:34px;border-bottom:1px solid var(--line2)}
+  .w-dat .row .t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .w-dat .row .c{text-align:right;color:var(--mute)}
+  .w-dat .row .s{text-align:right}
+  .w-dat .row.on{background:var(--fg);color:#08090a}
+  .w-dat .row.on .c{color:#4a4d48}
+  .w-dat .row.on .s{color:#08090a}
+  .w-dat .verify{height:27px;display:flex;align-items:center;gap:14px;padding:0 14px;background:#101314;border-bottom:1px solid var(--line2);font-size:11px;color:var(--mute);letter-spacing:.02em}
+  .w-dat .verify b{color:var(--green);font-weight:400;letter-spacing:.1em}
+  .w-dat .detail{border-left:1px solid var(--line);padding:12px 14px;overflow:hidden;position:relative}
+  .w-dat .kick{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+  .w-dat h2{margin:7px 0 4px;font-size:14px;line-height:1.35;font-weight:500;letter-spacing:-.01em}
+  .w-dat .sub{font-size:11px;color:var(--mute)}
+  .w-dat .rule{border-top:1px solid var(--line);margin:11px 0}
+  .w-dat .kv{display:flex;align-items:baseline;gap:6px;font-size:12px;line-height:1.8}
+  .w-dat .kv i{font-style:normal;color:var(--mute);letter-spacing:.04em;font-size:11px;text-transform:uppercase}
+  .w-dat .kv u{flex:1;border-bottom:1px dotted #33362f;text-decoration:none;transform:translateY(-3px)}
+  .w-dat .kv b{font-weight:400}
+  .w-dat .btn{margin-top:12px;border:1px solid var(--fg);text-align:center;padding:8px 0;font-size:12px;letter-spacing:.14em;text-transform:uppercase}
+  .w-dat .btn.dim{border-color:#33362f;color:var(--mute);margin-top:6px;letter-spacing:.1em;font-size:11px}
+  .w-dat .queue{padding:0 14px;display:flex;flex-direction:column;overflow:hidden}
+  .w-dat .qsum{display:flex;justify-content:space-between;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);padding:10px 0 8px;border-bottom:1px solid var(--line)}
+  .w-dat .qrow{display:grid;grid-template-columns:1fr 128px 116px 62px;gap:10px;align-items:center;height:34px;border-bottom:1px solid var(--line2);font-size:12px}
+  .w-dat .qrow .t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .w-dat .bar10{letter-spacing:-1px;font-size:12px}
+  .w-dat .bar10 b{color:var(--amber);font-weight:400}
+  .w-dat .bar10 s{color:#555a52;text-decoration:none}
+  .w-dat .qrow .s{text-align:right;font-size:11px;letter-spacing:.1em}
+  .w-dat .st-run{color:var(--amber)}.w-dat .st-que{color:var(--mute)}.w-dat .st-done{color:var(--green)}.w-dat .st-fail{color:var(--red)}
+  .w-dat .qfoot{margin-top:auto;display:flex;gap:10px;padding:9px 0;border-top:1px solid var(--line)}
+  .w-dat .k{border:1px solid #33362f;padding:5px 10px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute)}
+  .w-dat .k.hot{border-color:var(--fg);color:var(--fg)}
+
+  /* ============ DECK ============ */
+  .w-deck{
+    --fg:#e9e5da;--mute:#9a958b;--line:#33353a;--amber:#ffb020;--red:#ff4d3d;--green:#59d98c;
+    --rail:96px;
+    background:linear-gradient(180deg,#232427,#191a1c 62%,#151617);color:var(--fg);
+    font-family:Roboto,"Helvetica Neue",Arial,sans-serif;
+  }
+  .w-deck::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,rgba(255,255,255,.017) 0 1px,transparent 1px 3px);pointer-events:none}
+  .w-deck>*{position:relative;z-index:1}
+  .w-deck .rail{border-right:1px solid #0d0e0f;padding:8px 0;display:flex;flex-direction:column;background:linear-gradient(90deg,#1e1f21,#1a1b1d)}
+  .w-deck .sys{padding:8px 11px;display:grid;grid-template-columns:4px 1fr;gap:1px 7px;border-bottom:1px solid #101112}
+  .w-deck .led{width:4px;height:4px;border-radius:50%;background:#3a3c40;align-self:center}
+  .w-deck .sys .nm{grid-column:2;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a09a90}
+  .w-deck .sys .n{grid-column:2;font-size:11px;color:#a09a90;font-variant-numeric:tabular-nums}
+  .w-deck .sys.on .led{background:var(--amber);box-shadow:0 0 0 2px rgba(255,176,32,.14)}
+  .w-deck .sys.on .nm{color:var(--fg)}
+  .w-deck .sys.on .n{color:var(--amber)}
+  .w-deck .railfoot{margin-top:auto;padding:9px 11px;border-top:1px solid #101112;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a09a90}
+  .w-deck .railfoot b{color:var(--amber);font-weight:500}
+  .w-deck .bar{height:64px;padding:0 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #101112;background:linear-gradient(180deg,#202123,#1a1b1d);flex:none}
+  .w-deck .disp{background:#0b0c0d;border:1px solid #2c2e32;padding:7px 11px;min-width:236px;box-shadow:inset 0 1px 0 rgba(0,0,0,.7)}
+  .w-deck .disp .lbl{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#9a958b}
+  .w-deck .disp .val{margin-top:2px;font-size:17px;letter-spacing:.04em;color:var(--amber);font-variant-numeric:tabular-nums;line-height:1}
+  .w-deck .q{width:180px;background:#0b0c0d;border:1px solid #2c2e32;color:var(--fg);font:inherit;font-size:11.5px;padding:6px 8px;outline:none}
+  .w-deck .q::placeholder{color:#9a958b}
+  .w-deck .q:focus{border-color:#5c5f64}
+  .w-deck .body{display:grid;grid-template-columns:1fr 300px;min-height:0}
+  .w-deck .list{overflow:hidden;padding:4px 0}
+  .w-deck .row{height:44px;padding:0 14px;display:grid;grid-template-columns:26px 1fr 64px;gap:10px;align-items:center;border-bottom:1px solid #212327}
+  .w-deck .row .idx{font-size:11px;color:#a09a90;font-variant-numeric:tabular-nums;text-align:right}
+  .w-deck .row .tt{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .w-deck .row .mm{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#a09a90;margin-top:1px}
+  .w-deck .row .sz{font-size:11px;color:#a09a90;text-align:right;font-variant-numeric:tabular-nums}
+  .w-deck .row.on{background:#26282b;box-shadow:inset 0 1px 0 #34373b,inset 0 -1px 0 #131416}
+  .w-deck .row.on .idx{background:var(--amber);color:#121315;font-weight:700;padding:2px 0;text-align:center}
+  .w-deck .row.on .tt{color:#fff}
+  .w-deck .detail{border-left:1px solid #101112;padding:13px 15px;overflow:hidden}
+  .w-deck .kick{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#a09a90}
+  .w-deck h2{margin:6px 0 4px;font-size:18px;line-height:1.15;font-weight:600;letter-spacing:-.01em}
+  .w-deck .facts{display:grid;grid-template-columns:74px 1fr;gap:5px 8px;margin:12px 0 0;font-size:11.5px}
+  .w-deck .facts dt{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a09a90;padding-top:2px}
+  .w-deck .facts dd{margin:0;font-variant-numeric:tabular-nums}
+  .w-deck .meter{display:flex;gap:2px;margin:14px 0 2px;height:16px;align-items:flex-end}
+  .w-deck .meter i{flex:1;background:#2b2d31;height:9px;display:block}
+  .w-deck .meter i.on{background:var(--amber);height:14px}
+  .w-deck .meter i.pk{background:var(--red);height:14px}
+  .w-deck .meterlbl{display:flex;justify-content:space-between;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a09a90}
+  .w-deck .key{margin-top:13px;display:flex;align-items:center;justify-content:space-between;padding:11px 13px;background:linear-gradient(180deg,#3a3c40,#2a2c2f);border:1px solid #0e0f10;box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 2px 0 #0b0c0d;font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+  .w-deck .key b{color:var(--amber);font-weight:600;letter-spacing:.08em}
+  .w-deck .queue{padding:0 14px;display:flex;flex-direction:column;overflow:hidden}
+  .w-deck .qsum{display:flex;justify-content:space-between;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a09a90;padding:10px 0 8px;border-bottom:1px solid #212327}
+  .w-deck .qrow{display:grid;grid-template-columns:1fr 118px 58px;gap:12px;align-items:center;height:44px;border-bottom:1px solid #212327}
+  .w-deck .qrow .tt{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .w-deck .qrow .mm{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#a09a90;margin-top:1px}
+  .w-deck .qrow .sz{font-size:11px;color:#a09a90;text-align:right;font-variant-numeric:tabular-nums}
+  .w-deck .m2{display:flex;gap:2px;height:10px;align-items:flex-end}
+  .w-deck .m2 i{flex:1;height:5px;background:#2b2d31}
+  .w-deck .m2 i.on{background:var(--amber);height:10px}
+  .w-deck .m2 i.pk{background:var(--red);height:10px}
+  .w-deck .transport{margin-top:auto;display:flex;gap:8px;padding:9px 0 10px;border-top:1px solid #212327}
+  .w-deck .tk{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:9px 0;background:linear-gradient(180deg,#303236,#232528);border:1px solid #0e0f10;box-shadow:inset 0 1px 0 rgba(255,255,255,.12);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#c9c5ba}
+  .w-deck .tk svg{width:13px;height:13px;fill:currentColor}
+  .w-deck .tk.hot{color:var(--amber)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <h1>Caddy — UI directions</h1>
+    <p>Each frame is the app at <b>832 × 444 dp</b> — the Retroid Pocket 6's usable landscape area (1920×1080 @ 369 dpi, minus the status bar). Same content in all three. <b>Click a row</b> to move the selection. Sample titles and sizes are synthetic.</p>
+  </div>
+
+  <!-- ================= PRESS SHEET ================= -->
+  <section class="dir">
+    <div class="dirhead"><h2>Press Sheet</h2><span>browse · queue</span></div>
+    <p class="dirnote">A 1993 game magazine's import section: printed black stock, warm white editorial type, one spot red, halftone dot field, ruled spec boxes. The signature is the <b>spec box</b> — three ruled cells on every row that become the queue's state stamp.</p>
+    <div class="pair">
+      <div class="frame">
+        <div class="flabel">Browse</div>
+        <div class="scale"><div class="app w-press">
+          <nav class="rail">
+            <div class="sys on"><span class="code">GEN</span><span class="n">2043</span></div>
+            <div class="sys"><span class="code">SNE</span><span class="n">1841</span></div>
+            <div class="sys"><span class="code">GBA</span><span class="n">2043</span></div>
+            <div class="sys"><span class="code">PSX</span><span class="n">11170</span></div>
+            <div class="sys"><span class="code">SWI</span><span class="n">2107</span></div>
+            <div class="railfoot">Queue <b>2 active</b></div>
+          </nav>
+          <div class="main">
+            <header class="bar">
+              <div><h1>Genesis</h1><div class="meta">2,043 titles · 1 source</div></div>
+              <input class="q" placeholder="Search genesis">
+            </header>
+            <div class="body">
+              <div class="list">
+                <div class="row on" data-title="Sonic the Hedgehog" data-kick="Genesis · 1991 · Sega" data-size="3.1 MB" data-region="USA / Europe" data-source="torrent · 1 of 1 file" data-verify="SHA-1 + CRC32" data-path="/ROMs/genesis/" data-files="Base game only" data-hash="8f2c 41b7 9de0 · verified">
+                  <div><div class="tt">Sonic the Hedgehog</div><div class="mm">1991 · Sega</div></div>
+                  <div class="spec"><b>3.1M</b><b>US</b><b>—</b></div>
+                </div>
+                <div class="row" data-title="Streets of Rage 2" data-kick="Genesis · 1992 · Sega" data-size="2.4 MB" data-region="USA" data-source="torrent · 1 of 1 file" data-verify="SHA-1 + CRC32" data-path="/ROMs/genesis/" data-files="Base game only" data-hash="2b7e 90aa 11f3 · verified">
+                  <div><div class="tt">Streets of Rage 2</div><div class="mm">1992 · Sega</div></div>
+                  <div class="spec"><b>2.4M</b><b>US</b><b>—</b></div>
+                </div>
+                <div class="row" data-title="Gunstar Heroes" data-kick="Genesis · 1993 · Treasure" data-size="2.0 MB" data-region="USA" data-source="torrent · 1 of 1 file" data-verify="SHA-1 + CRC32" data-path="/ROMs/genesis/" data-files="Base game only" data-hash="77c1 0e4d 5b28 · verified">
+                  <div><div class="tt">Gunstar Heroes</div><div class="mm">1993 · Treasure</div></div>
+                  <div class="spec"><b>2.0M</b><b>US</b><b>—</b></div>
+                </div>
+                <div class="row" data-title="Phantasy Star IV" data-kick="Genesis · 1993 · Sega" data-size="3.4 MB" data-region="USA" data-source="torrent · 1 of 1 file" data-verify="SHA-1 + CRC32" data-path="/ROMs/genesis/" data-files="Base game only" data-hash="a3d9 6c02 8b71 · verified">
+                  <div><div class="tt">Phantasy Star IV</div><div class="mm">1993 · Sega</div></div>
+                  <div class="spec"><b>3.4M</b><b>US</b><b>—</b></div>
+                </div>
+                <div class="row" data-title="Castlevania: Bloodlines" data-kick="Genesis · 1994 · Konami" data-size="2.2 MB" data-region="USA" data-source="torrent · 1 of 1 file" data-verify="SHA-1 + CRC32" data-path="/ROMs/genesis/" data-files="Base game only" data-hash="5e6f b310 22c4 · verified">
+                  <div><div class="tt">Castlevania: Bloodlines</div><div class="mm">1994 · Konami</div></div>
+                  <div class="spec"><b>2.2M</b><b>US</b><b>—</b></div>
+                </div>
+                <div class="row" data-title="Contra: Hard Corps" data-kick="Genesis · 1994 · Konami" data-size="2.0 MB" data-region="USA" data-source="torrent · 1 of 1 file" data-verify="SHA-1 + CRC32" data-path="/ROMs/genesis/" data-files="Base game only" data-hash="91ab 7d55 c0e2 · verified">
+                  <div><div class="tt">Contra: Hard Corps</div><div class="mm">1994 · Konami</div></div>
+                  <div class="spec"><b>2.0M</b><b>US</b><b>—</b></div>
+                </div>
+                <div class="row" data-title="Ristar" data-kick="Genesis · 1995 · Sega" data-size="2.1 MB" data-region="USA / Europe" data-source="torrent · 1 of 1 file" data-verify="SHA-1 + CRC32" data-path="/ROMs/genesis/" data-files="Base game only" data-hash="c4e0 2a19 66bd · verified">
+                  <div><div class="tt">Ristar</div><div class="mm">1995 · Sega</div></div>
+                  <div class="spec"><b>2.1M</b><b>US</b><b>—</b></div>
+                </div>
+              </div>
+              <aside class="detail">
+                <div class="kick" data-f="kick">Genesis · 1991 · Sega</div>
+                <h2 data-f="title">Sonic the Hedgehog</h2>
+                <dl class="facts">
+                  <dt>Size</dt><dd data-f="size">3.1 MB</dd>
+                  <dt>Region</dt><dd data-f="region">USA / Europe</dd>
+                  <dt>Source</dt><dd data-f="source">torrent · 1 of 1 file</dd>
+                  <dt>Verify</dt><dd data-f="verify">SHA-1 + CRC32</dd>
+                  <dt>Files</dt><dd data-f="files">Base game only</dd>
+                  <dt>Path</dt><dd data-f="path">/ROMs/genesis/</dd>
+                </dl>
+                <div class="btn">Download <span>3.1 MB</span></div>
+                <div class="ghost">Open queue <span>2 active</span></div>
+              </aside>
+            </div>
+          </div>
+        </div></div>
+      </div>
+      <div class="frame">
+        <div class="flabel">Queue</div>
+        <div class="scale"><div class="app w-press">
+          <nav class="rail">
+            <div class="sys on"><span class="code">GEN</span><span class="n">2043</span></div>
+            <div class="sys"><span class="code">SNE</span><span class="n">1841</span></div>
+            <div class="sys"><span class="code">GBA</span><span class="n">2043</span></div>
+            <div class="sys"><span class="code">PSX</span><span class="n">11170</span></div>
+            <div class="sys"><span class="code">SWI</span><span class="n">2107</span></div>
+            <div class="railfoot">Queue <b>2 active</b></div>
+          </nav>
+          <div class="main">
+            <header class="bar">
+              <div><h1>Queue</h1><div class="meta">5 items · 2 active · 41.2 GB free</div></div>
+              <input class="q" placeholder="Filter queue">
+            </header>
+            <div class="queue">
+              <div class="qsum"><span>Downloading</span><span>1.1 / 2.4 MB · 47%</span></div>
+              <div class="qrow">
+                <div><div class="tt">Streets of Rage 2</div><div class="mm">Genesis · torrent · 2 peers</div></div>
+                <div class="stamp run">Run 47%</div>
+              </div>
+              <div class="qrow">
+                <div><div class="tt">Metroid Fusion</div><div class="mm">Game Boy Advance · http · queued</div></div>
+                <div class="stamp que">Queued</div>
+              </div>
+              <div class="qrow">
+                <div><div class="tt">Castlevania: Bloodlines</div><div class="mm">Genesis · http · queued</div></div>
+                <div class="stamp que">Queued</div>
+              </div>
+              <div class="qrow">
+                <div><div class="tt">Sonic the Hedgehog</div><div class="mm">Genesis · 3.1 MB · SHA-1 verified</div></div>
+                <div class="stamp done">Saved</div>
+              </div>
+              <div class="qrow">
+                <div><div class="tt">The Witcher 3 — Update 4.04</div><div class="mm">Switch · checksum mismatch · attempt 2</div></div>
+                <div class="stamp fail">Failed</div>
+              </div>
+            </div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+    <p class="spec-line"><b>Cost:</b> system sans + one halftone dot layer + hairlines. No images, no blur, no shadows. Rows are 56 dp — 7 per screen, one glance per row.</p>
+  </section>
+
+  <!-- ================= DAT SHEET ================= -->
+  <section class="dir">
+    <div class="dirhead"><h2>DAT Sheet</h2><span>browse · queue</span></div>
+    <p class="dirnote">The No-Intro / Redump manifest the audience already reads: fixed-width columns, region tags, hairline rules, hashes. The list <i>is</i> the document. Signature: the selected row opens one <b>verification line</b> — SHA-1, CRC32 — and the queue's progress is a character-cell bar that updates in place.</p>
+    <div class="pair">
+      <div class="frame">
+        <div class="flabel">Browse</div>
+        <div class="scale"><div class="app w-dat">
+          <nav class="rail">
+            <div class="sys on"><span>GEN</span><span class="n">2043</span></div>
+            <div class="sys"><span>SNE</span><span class="n">1841</span></div>
+            <div class="sys"><span>GBA</span><span class="n">2043</span></div>
+            <div class="sys"><span>PSX</span><span class="n">11170</span></div>
+            <div class="sys"><span>SWI</span><span class="n">2107</span></div>
+            <div class="railfoot">Q 2 / 5</div>
+          </nav>
+          <div class="main">
+            <header class="bar">
+              <div><h1>Genesis</h1><div class="meta">2,043 titles · 1 source · 3.1 MB</div></div>
+              <input class="q" placeholder="filter ▸ ">
+            </header>
+            <div class="body">
+              <div class="list">
+                <div class="cols"><b>Title</b><b>Sys</b><b>Size</b><b>State</b></div>
+                <div class="row on" data-title="Sonic the Hedgehog (USA, Europe)" data-kick="GEN · 1991 · Sega" data-size="3.1 MB" data-region="USA / Europe" data-source="torrent · 1 of 1 file" data-verify="SHA-1 + CRC32" data-path="/ROMs/genesis/" data-files="Base game only" data-hash="8f2c 41b7 9de0">
+                  <div class="t">Sonic the Hedgehog (USA, Europe)</div><div class="c">GEN</div><div class="c">3.1M</div><div class="s">ok</div>
+                </div>
+                <div class="verify"><span>SHA-1 8f2c…9de0</span><span>CRC32 4b19c7</span><b>VERIFIED</b></div>
+                <div class="row" data-title="Streets of Rage 2 (USA)" data-kick="GEN · 1992 · Sega" data-size="2.4 MB" data-region="USA" data-source="torrent · 1 of 1 file" data-verify="SHA-1 + CRC32" data-path="/ROMs/genesis/" data-files="Base game only" data-hash="2b7e 90aa 11f3">
+                  <div class="t">Streets of Rage 2 (USA)</div><div class="c">GEN</div><div class="c">2.4M</div><div class="s">run</div>
+                </div>
+                <div class="row" data-title="Gunstar Heroes (USA)" data-kick="GEN · 1993 · Treasure" data-size="2.0 MB" data-region="USA" data-source="torrent · 1 of 1 file" data-verify="SHA-1 + CRC32" data-path="/ROMs/genesis/" data-files="Base game only" data-hash="77c1 0e4d 5b28">
+                  <div class="t">Gunstar Heroes (USA)</div><div class="c">GEN</div><div class="c">2.0M</div><div class="s">que</div>
+                </div>
+                <div class="row" data-title="Phantasy Star IV (USA)" data-kick="GEN · 1993 · Sega" data-size="3.4 MB" data-region="USA" data-source="torrent · 1 of 1 file" data-verify="SHA-1 + CRC32" data-path="/ROMs/genesis/" data-files="Base game only" data-hash="a3d9 6c02 8b71">
+                  <div class="t">Phantasy Star IV (USA)</div><div class="c">GEN</div><div class="c">3.4M</div><div class="s">—</div>
+                </div>
+                <div class="row" data-title="Castlevania: Bloodlines (USA)" data-kick="GEN · 1994 · Konami" data-size="2.2 MB" data-region="USA" data-source="torrent · 1 of 1 file" data-verify="SHA-1 + CRC32" data-path="/ROMs/genesis/" data-files="Base game only" data-hash="5e6f b310 22c4">
+                  <div class="t">Castlevania: Bloodlines (USA)</div><div class="c">GEN</div><div class="c">2.2M</div><div class="s">—</div>
+                </div>
+                <div class="row" data-title="Contra: Hard Corps (USA)" data-kick="GEN · 1994 · Konami" data-size="2.0 MB" data-region="USA" data-source="torrent · 1 of 1 file" data-verify="SHA-1 + CRC32" data-path="/ROMs/genesis/" data-files="Base game only" data-hash="91ab 7d55 c0e2">
+                  <div class="t">Contra: Hard Corps (USA)</div><div class="c">GEN</div><div class="c">2.0M</div><div class="s">—</div>
+                </div>
+                <div class="row" data-title="Ristar (USA, Europe)" data-kick="GEN · 1995 · Sega" data-size="2.1 MB" data-region="USA / Europe" data-source="torrent · 1 of 1 file" data-verify="SHA-1 + CRC32" data-path="/ROMs/genesis/" data-files="Base game only" data-hash="c4e0 2a19 66bd">
+                  <div class="t">Ristar (USA, Europe)</div><div class="c">GEN</div><div class="c">2.1M</div><div class="s">—</div>
+                </div>
+                <div class="row" data-title="Vectorman (USA)" data-kick="GEN · 1995 · Sega" data-size="1.9 MB" data-region="USA" data-source="torrent · 1 of 1 file" data-verify="SHA-1 + CRC32" data-path="/ROMs/genesis/" data-files="Base game only" data-hash="0d3c 5a7e 9b14">
+                  <div class="t">Vectorman (USA)</div><div class="c">GEN</div><div class="c">1.9M</div><div class="s">—</div>
+                </div>
+                <div class="row" data-title="Comix Zone (USA)" data-kick="GEN · 1995 · Sega" data-size="2.3 MB" data-region="USA" data-source="torrent · 1 of 1 file" data-verify="SHA-1 + CRC32" data-path="/ROMs/genesis/" data-files="Base game only" data-hash="b1f8 3c40 7a2d">
+                  <div class="t">Comix Zone (USA)</div><div class="c">GEN</div><div class="c">2.3M</div><div class="s">—</div>
+                </div>
+              </div>
+              <aside class="detail">
+                <div class="kick" data-f="kick">GEN · 1991 · Sega</div>
+                <h2 data-f="title">Sonic the Hedgehog (USA, Europe)</h2>
+                <div class="sub" data-f="hash">sha-1 8f2c…9de0 · verified</div>
+                <div class="rule"></div>
+                <div class="kv"><i>size</i><u></u><b data-f="size">3.1 MB</b></div>
+                <div class="kv"><i>region</i><u></u><b data-f="region">USA / Europe</b></div>
+                <div class="kv"><i>source</i><u></u><b data-f="source">torrent</b></div>
+                <div class="kv"><i>files</i><u></u><b data-f="files">base game</b></div>
+                <div class="kv"><i>path</i><u></u><b data-f="path">/ROMs/genesis/</b></div>
+                <div class="btn">Download</div>
+                <div class="btn dim">Queue · 2 active</div>
+              </aside>
+            </div>
+          </div>
+        </div></div>
+      </div>
+      <div class="frame">
+        <div class="flabel">Queue</div>
+        <div class="scale"><div class="app w-dat">
+          <nav class="rail">
+            <div class="sys on"><span>GEN</span><span class="n">2043</span></div>
+            <div class="sys"><span>SNE</span><span class="n">1841</span></div>
+            <div class="sys"><span>GBA</span><span class="n">2043</span></div>
+            <div class="sys"><span>PSX</span><span class="n">11170</span></div>
+            <div class="sys"><span>SWI</span><span class="n">2107</span></div>
+            <div class="railfoot">Q 2 / 5</div>
+          </nav>
+          <div class="main">
+            <header class="bar">
+              <div><h1>Queue</h1><div class="meta">5 items · 2 active · 41.2 GB free</div></div>
+              <input class="q" placeholder="filter ▸ ">
+            </header>
+            <div class="queue">
+              <div class="qsum"><span>State</span><span>Bytes</span></div>
+              <div class="qrow">
+                <div class="t">Streets of Rage 2 (USA)</div>
+                <div class="bar10"><b>▮▮▮▮▮</b><s>▯▯▯▯▯</s> 47%</div>
+                <div class="c">1.1/2.4M</div>
+                <div class="s st-run">RUN</div>
+              </div>
+              <div class="qrow">
+                <div class="t">Metroid Fusion (USA)</div>
+                <div class="bar10"><s>▯▯▯▯▯▯▯▯▯▯</s></div>
+                <div class="c">8.0M</div>
+                <div class="s st-que">QUE</div>
+              </div>
+              <div class="qrow">
+                <div class="t">Castlevania: Bloodlines (USA)</div>
+                <div class="bar10"><s>▯▯▯▯▯▯▯▯▯▯</s></div>
+                <div class="c">2.2M</div>
+                <div class="s st-que">QUE</div>
+              </div>
+              <div class="qrow">
+                <div class="t">Sonic the Hedgehog (USA, Europe)</div>
+                <div class="bar10"><b>▮▮▮▮▮▮▮▮▮▮</b></div>
+                <div class="c">3.1M</div>
+                <div class="s st-done">OK</div>
+              </div>
+              <div class="qrow">
+                <div class="t">The Witcher 3 — Update 4.04</div>
+                <div class="bar10"><b>▮▮▮▮▮▮</b><s>▯▯▯▯</s></div>
+                <div class="c">3.9G</div>
+                <div class="s st-fail">ERR</div>
+              </div>
+              <div class="qfoot"><span class="k hot">Resume</span><span class="k">Clear finished</span><span class="k">Open folder</span></div>
+            </div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+    <p class="spec-line"><b>Cost:</b> one monospace family, hairlines, zero assets. Highest density of the three — 11 rows per screen — and the queue bar is text, so a progress update costs one string change.</p>
+  </section>
+
+  <!-- ================= DECK ================= -->
+  <section class="dir">
+    <div class="dirhead"><h2>Deck</h2><span>browse · queue</span></div>
+    <p class="dirnote">A 1988 cassette deck front panel: anodized charcoal, amber LED counters, engraved labels, transport keys. Signature: the <b>segmented meter</b> is the active download, and play / pause / stop / eject are the queue's real controls.</p>
+    <div class="pair">
+      <div class="frame">
+        <div class="flabel">Browse</div>
+        <div class="scale"><div class="app w-deck">
+          <nav class="rail">
+            <div class="sys on"><span class="led"></span><span class="nm">Genesis</span><span class="n">2043</span></div>
+            <div class="sys"><span class="led"></span><span class="nm">Snes</span><span class="n">1841</span></div>
+            <div class="sys"><span class="led"></span><span class="nm">Gba</span><span class="n">2043</span></div>
+            <div class="sys"><span class="led"></span><span class="nm">Psx</span><span class="n">11170</span></div>
+            <div class="sys"><span class="led"></span><span class="nm">Switch</span><span class="n">2107</span></div>
+            <div class="railfoot">Queue <b>2 active</b></div>
+          </nav>
+          <div class="main">
+            <header class="bar">
+              <div class="disp"><div class="lbl">System / titles</div><div class="val">GENESIS  2043</div></div>
+              <input class="q" placeholder="Search genesis">
+            </header>
+            <div class="body">
+              <div class="list">
+                <div class="row on" data-title="Sonic the Hedgehog" data-kick="Genesis · 1991 · Sega" data-size="3.1 MB" data-region="USA / Europe" data-source="torrent · 1 of 1 file" data-verify="SHA-1 + CRC32" data-path="/ROMs/genesis/" data-files="Base game only" data-hash="8f2c 41b7 9de0">
+                  <div class="idx">01</div><div><div class="tt">Sonic the Hedgehog</div><div class="mm">1991 · Sega</div></div><div class="sz">3.1M</div>
+                </div>
+                <div class="row" data-title="Streets of Rage 2" data-kick="Genesis · 1992 · Sega" data-size="2.4 MB" data-region="USA" data-source="torrent · 1 of 1 file" data-verify="SHA-1 + CRC32" data-path="/ROMs/genesis/" data-files="Base game only" data-hash="2b7e 90aa 11f3">
+                  <div class="idx">02</div><div><div class="tt">Streets of Rage 2</div><div class="mm">1992 · Sega</div></div><div class="sz">2.4M</div>
+                </div>
+                <div class="row" data-title="Gunstar Heroes" data-kick="Genesis · 1993 · Treasure" data-size="2.0 MB" data-region="USA" data-source="torrent · 1 of 1 file" data-verify="SHA-1 + CRC32" data-path="/ROMs/genesis/" data-files="Base game only" data-hash="77c1 0e4d 5b28">
+                  <div class="idx">03</div><div><div class="tt">Gunstar Heroes</div><div class="mm">1993 · Treasure</div></div><div class="sz">2.0M</div>
+                </div>
+                <div class="row" data-title="Phantasy Star IV" data-kick="Genesis · 1993 · Sega" data-size="3.4 MB" data-region="USA" data-source="torrent · 1 of 1 file" data-verify="SHA-1 + CRC32" data-path="/ROMs/genesis/" data-files="Base game only" data-hash="a3d9 6c02 8b71">
+                  <div class="idx">04</div><div><div class="tt">Phantasy Star IV</div><div class="mm">1993 · Sega</div></div><div class="sz">3.4M</div>
+                </div>
+                <div class="row" data-title="Castlevania: Bloodlines" data-kick="Genesis · 1994 · Konami" data-size="2.2 MB" data-region="USA" data-source="torrent · 1 of 1 file" data-verify="SHA-1 + CRC32" data-path="/ROMs/genesis/" data-files="Base game only" data-hash="5e6f b310 22c4">
+                  <div class="idx">05</div><div><div class="tt">Castlevania: Bloodlines</div><div class="mm">1994 · Konami</div></div><div class="sz">2.2M</div>
+                </div>
+                <div class="row" data-title="Contra: Hard Corps" data-kick="Genesis · 1994 · Konami" data-size="2.0 MB" data-region="USA" data-source="torrent · 1 of 1 file" data-verify="SHA-1 + CRC32" data-path="/ROMs/genesis/" data-files="Base game only" data-hash="91ab 7d55 c0e2">
+                  <div class="idx">06</div><div><div class="tt">Contra: Hard Corps</div><div class="mm">1994 · Konami</div></div><div class="sz">2.0M</div>
+                </div>
+                <div class="row" data-title="Ristar" data-kick="Genesis · 1995 · Sega" data-size="2.1 MB" data-region="USA / Europe" data-source="torrent · 1 of 1 file" data-verify="SHA-1 + CRC32" data-path="/ROMs/genesis/" data-files="Base game only" data-hash="c4e0 2a19 66bd">
+                  <div class="idx">07</div><div><div class="tt">Ristar</div><div class="mm">1995 · Sega</div></div><div class="sz">2.1M</div>
+                </div>
+              </div>
+              <aside class="detail">
+                <div class="kick" data-f="kick">Genesis · 1991 · Sega</div>
+                <h2 data-f="title">Sonic the Hedgehog</h2>
+                <dl class="facts">
+                  <dt>Size</dt><dd data-f="size">3.1 MB</dd>
+                  <dt>Region</dt><dd data-f="region">USA / Europe</dd>
+                  <dt>Source</dt><dd data-f="source">torrent</dd>
+                  <dt>Verify</dt><dd data-f="verify">SHA-1 + CRC32</dd>
+                  <dt>Path</dt><dd data-f="path">/ROMs/genesis/</dd>
+                </dl>
+                <div class="meter"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                <div class="meterlbl"><span>Queue</span><span>2 active</span></div>
+                <div class="key">Download <b>3.1 MB</b></div>
+              </aside>
+            </div>
+          </div>
+        </div></div>
+      </div>
+      <div class="frame">
+        <div class="flabel">Queue</div>
+        <div class="scale"><div class="app w-deck">
+          <nav class="rail">
+            <div class="sys on"><span class="led"></span><span class="nm">Genesis</span><span class="n">2043</span></div>
+            <div class="sys"><span class="led"></span><span class="nm">Snes</span><span class="n">1841</span></div>
+            <div class="sys"><span class="led"></span><span class="nm">Gba</span><span class="n">2043</span></div>
+            <div class="sys"><span class="led"></span><span class="nm">Psx</span><span class="n">11170</span></div>
+            <div class="sys"><span class="led"></span><span class="nm">Switch</span><span class="n">2107</span></div>
+            <div class="railfoot">Queue <b>2 active</b></div>
+          </nav>
+          <div class="main">
+            <header class="bar">
+              <div class="disp"><div class="lbl">Queue / active</div><div class="val">2 ACTIVE   41.2G</div></div>
+              <input class="q" placeholder="Filter queue">
+            </header>
+            <div class="queue">
+              <div class="qsum"><span>Item</span><span>Progress</span><span>Bytes</span></div>
+              <div class="qrow">
+                <div><div class="tt">Streets of Rage 2</div><div class="mm">Genesis · run · 2 peers</div></div>
+                <div class="m2"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                <div class="sz">1.1/2.4M</div>
+              </div>
+              <div class="qrow">
+                <div><div class="tt">Metroid Fusion</div><div class="mm">Game Boy Advance · queued</div></div>
+                <div class="m2"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                <div class="sz">8.0M</div>
+              </div>
+              <div class="qrow">
+                <div><div class="tt">Castlevania: Bloodlines</div><div class="mm">Genesis · queued</div></div>
+                <div class="m2"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                <div class="sz">2.2M</div>
+              </div>
+              <div class="qrow">
+                <div><div class="tt">Sonic the Hedgehog</div><div class="mm">Genesis · SHA-1 verified</div></div>
+                <div class="m2"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div>
+                <div class="sz">3.1M</div>
+              </div>
+              <div class="qrow">
+                <div><div class="tt">The Witcher 3 — Update 4.04</div><div class="mm">Switch · checksum mismatch · attempt 2</div></div>
+                <div class="m2"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="pk"></i><i></i><i></i><i></i></div>
+                <div class="sz">3.9G</div>
+              </div>
+              <div class="transport">
+                <div class="tk hot"><svg viewBox="0 0 16 16"><path d="M4 2l9 6-9 6z"/></svg>Resume</div>
+                <div class="tk"><svg viewBox="0 0 16 16"><path d="M4 2h3v12H4zM9 2h3v12H9z"/></svg>Pause</div>
+                <div class="tk"><svg viewBox="0 0 16 16"><path d="M3 3h10v10H3z"/></svg>Stop</div>
+                <div class="tk"><svg viewBox="0 0 16 16"><path d="M8 2l6 8H2z"/><path d="M2 12h12v2H2z"/></svg>Eject</div>
+              </div>
+            </div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+    <p class="spec-line"><b>Cost:</b> system sans, four 13 dp SVG icons, two 1 px gradients, segmented bars as divs. 44 dp rows — 8 per screen. The physical key treatment is the only depth in the app.</p>
+  </section>
+
+  <p class="spec-line" style="border-top:1px solid #26272a;padding-top:14px;color:#8b8b86">
+    Same shell in all three: rail, header, list, detail. Below 700 dp the detail becomes a full-width sheet and the rail collapses to 72 dp; the queue keeps its table at every width. Pick one and the full set — systems, browse, detail with base/update/DLC, queue, sources, first-run — gets built in that world.
+  </p>
+</div>
+
+<script>
+  (function () {
+    // Fit each frame to the window without ever upscaling past 1:1.
+    function fit() {
+      var frames = document.querySelectorAll('.scale');
+      var perRow = window.innerWidth >= 1760 ? 2 : 1;
+      var avail = document.querySelector('.wrap').clientWidth - 4;
+      var s = Math.min(1, (avail - 18 * (perRow - 1)) / (832 * perRow));
+      if (s < 0.3) s = 0.3;
+      for (var i = 0; i < frames.length; i++) frames[i].style.setProperty('--s', s);
+    }
+    fit();
+    window.addEventListener('resize', fit);
+
+    // Row selection drives the detail pane, exactly like the D-pad will.
+    document.addEventListener('click', function (e) {
+      var row = e.target.closest('.row');
+      if (!row) return;
+      var list = row.parentElement;
+      list.querySelectorAll('.row').forEach(function (r) { r.classList.remove('on'); });
+      row.classList.add('on');
+      var app = row.closest('.app');
+      var d = app.querySelector('.detail');
+      if (!d) return;
+      ['title', 'kick', 'size', 'region', 'source', 'verify', 'path', 'files', 'hash'].forEach(function (k) {
+        var el = d.querySelector('[data-f="' + k + '"]');
+        var v = row.getAttribute('data-' + k);
+        if (el && v) el.textContent = v;
+      });
+    });
+
+    // Arrow keys move the selection in whichever frame the pointer is over.
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+      var hovered = document.querySelector('.app:hover');
+      if (!hovered) return;
+      var rows = Array.prototype.slice.call(hovered.querySelectorAll('.list .row'));
+      var i = rows.findIndex(function (r) { return r.classList.contains('on'); });
+      var next = e.key === 'ArrowDown' ? Math.min(rows.length - 1, i + 1) : Math.max(0, i - 1);
+      if (i === next || !rows[next]) return;
+      e.preventDefault();
+      rows[next].click();
+    });
+  })();
+</script>
+</body>
+</html>

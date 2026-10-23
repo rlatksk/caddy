@@ -29,3 +29,6 @@ local.properties
 /keystore.properties
 *.jks
 *.keystore
+
+# Impeccable skill scratch state (decision payloads, build gates)
+/.impeccable/
