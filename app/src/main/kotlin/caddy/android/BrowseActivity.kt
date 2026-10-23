@@ -217,6 +217,7 @@ class BrowseActivity : AppCompatActivity() {
             sourceId = source.id,
             sourceRef = entry.sourceRef,
             sizeBytes = entry.sizeBytes,
+            torrentFileIndex = entry.torrentFileIndex,
         )
         DownloadService.start(this)
         status.text = "Queued ${entry.title} (#$id)"

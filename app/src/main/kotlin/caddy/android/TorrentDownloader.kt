@@ -33,57 +33,75 @@ class TorrentDownloader(private val http: OkHttpClient, private val context: and
         onProgress: (Long, Long) -> Unit,
     ): File {
         destination.parentFile?.mkdirs()
+        // The torrent writes the file at its final name inside the save path, so
+        // it must not be the ROMs folder: a half-written ROM there looks valid to
+        // ES-DE and fails at launch. Stage in a sibling temp dir and move once
+        // the file is complete.
+        val staging = File(destination.parentFile, STAGING_DIR).apply { mkdirs() }
+        android.util.Log.i(TAG, "torrent start file=#${resolved.fileIndex} ${resolved.filename}")
         val session = SessionManager()
         session.start()
+        android.util.Log.i(TAG, "session started")
         try {
-            session.download(resolved.magnet, destination.parentFile, TorrentFlags.SEQUENTIAL_DOWNLOAD)
+            session.download(resolved.magnet, staging, TorrentFlags.SEQUENTIAL_DOWNLOAD)
 
             val handle = awaitHandle(session, resolved)
+            android.util.Log.i(TAG, "handle found")
             awaitMetadata(handle, resolved)
+            android.util.Log.i(TAG, "metadata ok files=${handle.torrentFile()?.numFiles()}")
 
             val info = handle.torrentFile()
                 ?: throw SourceUnavailable("torrent metadata missing", retryable = true)
-            if (resolved.fileIndex !in 0 until info.numFiles()) {
-                throw SourceUnavailable(
-                    "torrent has ${info.numFiles()} files, no index ${resolved.fileIndex}", retryable = false)
-            }
+            // The page's data-m is a row index, not the torrent's file index: the
+            // two orders differ (index 2128 was "Minicraft" in the torrent). Match
+            // on the filename the catalog showed, and keep the index only as a
+            // fallback for a torrent that renamed the file.
+            val files = info.files()
+            val wantedIndex = (0 until files.numFiles()).firstOrNull { i ->
+                files.filePath(i).substringAfterLast('/').equals(resolved.filename, ignoreCase = true)
+            } ?: resolved.fileIndex.takeIf { it in 0 until files.numFiles() }
+            ?: throw SourceUnavailable(
+                "${resolved.filename} is not in this torrent (${files.numFiles()} files)", retryable = false)
+            android.util.Log.i(TAG, "file #$wantedIndex = ${files.filePath(wantedIndex)}")
 
             // Everything ignored but the one file we want.
-            val priorities = Array(info.numFiles()) { Priority.IGNORE }
-            priorities[resolved.fileIndex] = Priority.TOP_PRIORITY
+            val priorities = Array(files.numFiles()) { Priority.IGNORE }
+            priorities[wantedIndex] = Priority.TOP_PRIORITY
             handle.prioritizeFiles(priorities)
-            handle.setSequentialRange(resolved.fileIndex)
+            handle.setSequentialRange(wantedIndex)
 
-            val wanted = handle.status().totalWanted()
+            // The file's own size, not the torrent's: priorities were only just
+            // applied, so status.totalWanted() still reports the whole collection.
+            val wanted = files.fileSize(wantedIndex)
+            android.util.Log.i(TAG, "wanting $wanted bytes of file #$wantedIndex")
             var last = 0L
             while (true) {
-                val status = handle.status()
+                val status = handle.status(true)
                 val done = status.totalWantedDone()
                 if (done != last) {
                     last = done
                     onProgress(done, wanted)
                 }
+                if (done >= wanted && wanted > 0) break
                 if (status.isSeeding || status.isFinished) break
-                if (status.state() == org.libtorrent4j.TorrentStatus.State.DOWNLOADING &&
-                    status.downloadPayloadRate() == 0 && done >= wanted && wanted > 0
-                ) break
                 if (status.errorCode().isError) {
                     throw SourceUnavailable("torrent failed: ${status.errorCode().getValue()}", retryable = true)
+                }
+                if (System.currentTimeMillis() % 5000 < POLL_MS) {
+                    android.util.Log.i(TAG, "progress $done/$wanted peers=${status.numPeers()} rate=${status.downloadPayloadRate()}")
                 }
                 Thread.sleep(POLL_MS)
             }
 
-            val file = File(handle.savePath(), handle.torrentFile()!!.files().filePath(resolved.fileIndex))
-            if (!file.exists() || file.length() == 0L) {
-                throw SourceUnavailable("torrent produced no file for ${resolved.filename}", retryable = true)
+            val file = File(handle.savePath(), files.filePath(wantedIndex))
+            if (!file.exists() || file.length() != wanted) {
+                throw SourceUnavailable(
+                    "torrent produced ${file.length()} of $wanted bytes for ${resolved.filename}", retryable = true)
             }
             // The torrent writes into its own layout; the app wants the flat
             // ROMs/<system>/ name the catalog advertised.
-            if (file.canonicalPath != destination.canonicalPath) {
-                destination.parentFile?.mkdirs()
-                file.copyTo(destination, overwrite = true)
-                file.delete()
-            }
+            file.copyTo(destination, overwrite = true)
+            staging.deleteRecursively()
             return destination
         } finally {
             runCatching { session.stop() }
@@ -119,6 +137,8 @@ class TorrentDownloader(private val http: OkHttpClient, private val context: and
     }
 
     private companion object {
+        const val TAG = "caddy-torrent"
+        const val STAGING_DIR = ".caddy-torrent"
         const val POLL_MS = 500L
         const val METADATA_TIMEOUT_MS = 120_000L
     }

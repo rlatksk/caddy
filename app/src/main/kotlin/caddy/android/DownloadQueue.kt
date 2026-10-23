@@ -27,6 +27,7 @@ class DownloadQueue(context: Context) {
         val kind: String,
         val sourceId: String,
         val sourceRef: String?,
+        val torrentFileIndex: Int?,
         val sizeBytes: Long,
         val state: String,
         val bytesDone: Long,
@@ -46,6 +47,7 @@ class DownloadQueue(context: Context) {
                     kind TEXT NOT NULL,
                     sourceId TEXT NOT NULL,
                     sourceRef TEXT,
+                    torrentFileIndex INTEGER,
                     sizeBytes INTEGER NOT NULL DEFAULT 0,
                     state TEXT NOT NULL,
                     bytesDone INTEGER NOT NULL DEFAULT 0,
@@ -58,7 +60,12 @@ class DownloadQueue(context: Context) {
             db.execSQL("CREATE INDEX downloads_state ON downloads(state)")
         }
 
-        override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) = Unit
+        /** The queue is a work list, not user data: rebuilding it is cheaper than
+         *  a migration per column, and a lost row is re-downloadable. */
+        override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+            db.execSQL("DROP TABLE IF EXISTS downloads")
+            onCreate(db)
+        }
     }
 
     fun enqueue(
@@ -69,6 +76,7 @@ class DownloadQueue(context: Context) {
         sourceId: String,
         sourceRef: String?,
         sizeBytes: Long?,
+        torrentFileIndex: Int? = null,
     ): Long {
         // Same file already queued or running: don't add a second copy.
         readable().query(
@@ -84,6 +92,7 @@ class DownloadQueue(context: Context) {
             put("kind", kind)
             put("sourceId", sourceId)
             put("sourceRef", sourceRef)
+            put("torrentFileIndex", torrentFileIndex)
             put("sizeBytes", sizeBytes ?: 0L)
             put("state", STATE_QUEUED)
             put("createdAt", System.currentTimeMillis())
@@ -153,6 +162,9 @@ class DownloadQueue(context: Context) {
         kind = getString(getColumnIndexOrThrow("kind")),
         sourceId = getString(getColumnIndexOrThrow("sourceId")),
         sourceRef = getString(getColumnIndexOrThrow("sourceRef")),
+        torrentFileIndex = getInt(getColumnIndexOrThrow("torrentFileIndex")).takeIf {
+            !isNull(getColumnIndexOrThrow("torrentFileIndex"))
+        },
         sizeBytes = getLong(getColumnIndexOrThrow("sizeBytes")),
         state = getString(getColumnIndexOrThrow("state")),
         bytesDone = getLong(getColumnIndexOrThrow("bytesDone")),
@@ -162,7 +174,7 @@ class DownloadQueue(context: Context) {
 
     companion object {
         private const val NAME = "downloads.db"
-        private const val VERSION = 1
+        private const val VERSION = 2
 
         const val STATE_QUEUED = "queued"
         const val STATE_RUNNING = "running"

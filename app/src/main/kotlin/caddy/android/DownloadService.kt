@@ -180,6 +180,7 @@ class DownloadService : Service() {
             filename = row.filename,
             sizeBytes = row.sizeBytes.takeIf { it > 0 },
             sourceRef = row.sourceRef,
+            torrentFileIndex = row.torrentFileIndex,
             kind = row.kind.ifBlank { KIND_BASE },
         )
         val ordered = index.sources
