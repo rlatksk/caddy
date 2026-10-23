@@ -95,6 +95,10 @@ class MainActivity : AppCompatActivity() {
             text = "Remove"
             setOnClickListener { removeRepo() }
         }
+        val updateButton = Button(this).apply {
+            text = "Check update"
+            setOnClickListener { checkUpdate(this) }
+        }
         val downloadsButton = Button(this).apply {
             text = "Downloads"
             setOnClickListener {
@@ -113,6 +117,7 @@ class MainActivity : AppCompatActivity() {
             addView(refreshButton)
             addView(removeButton)
             addView(downloadsButton)
+            addView(updateButton)
         }
 
         setContentView(
@@ -274,6 +279,26 @@ class MainActivity : AppCompatActivity() {
                 text = "\nNothing enabled yet. Pick the systems you want; only those appear in Browse."
                 textSize = 13f
             })
+        }
+    }
+
+    /**
+     * Update check is manual: no background polling, because this app makes no
+     * network calls the user did not ask for.
+     */
+    private fun checkUpdate(button: Button) {
+        button.isEnabled = false
+        say("Checking for updates…")
+        lifecycleScope.launch {
+            when (val result = UpdateChecker(this@MainActivity).check()) {
+                is UpdateResult.UpToDate -> say("Caddy is up to date (${BuildConfig.VERSION_NAME}).")
+                is UpdateResult.Failed -> say("Update check failed: ${result.message}")
+                is UpdateResult.Ready -> {
+                    say("Update ${result.info.versionName} ready — installing.")
+                    UpdateChecker(this@MainActivity).install(result.apk)
+                }
+            }
+            button.isEnabled = true
         }
     }
 

@@ -10,7 +10,7 @@ android {
         applicationId = "caddy.android"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
+        versionCode = 3
         versionName = "0.1.0"
         ndk { abiFilters += "arm64-v8a" }
     }
@@ -23,6 +23,16 @@ android {
     }
 
     buildFeatures { buildConfig = true }
+
+    defaultConfig {
+        // Where the app looks for updates. Sideloading is the only channel, so
+        // without this users are stranded on their first APK.
+        buildConfigField(
+            "String",
+            "UPDATE_URL",
+            "\"https://github.com/rlatksk/caddy/releases/latest/download/versions.json\"",
+        )
+    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

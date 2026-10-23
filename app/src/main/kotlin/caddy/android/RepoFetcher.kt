@@ -23,6 +23,7 @@ sealed interface RepoError {
     data class SchemaTooNew(val version: Int) : RepoError
     data object AlreadyAdded : RepoError
     data class InsecureUrl(val host: String) : RepoError
+    data object ProtobufIndex : RepoError
 }
 
 /**
@@ -57,6 +58,10 @@ class RepoFetcher(private val store: RepoStore) {
                 url
             }
             text.startsWith("http://") || text.startsWith("https://") -> text
+            // A bare LAN address is a self-hosted repo, and self-hosting with a
+            // certificate is unreasonable to require. Anything else gets HTTPS.
+            text.contains('/') && isPrivateHost(text.substringBefore('/').substringBefore(':')) ->
+                "http://$text"
             text.contains('/') -> "https://$text"
             else -> return Result.failure(RepoException(RepoError.NotAUrl))
         }
@@ -105,6 +110,14 @@ class RepoFetcher(private val store: RepoStore) {
             return@withContext Result.failure(
                 RepoException(RepoError.Network(e.message ?: e::class.java.simpleName))
             )
+        }
+
+        // Mihon's official repo publishes protobuf only. Detecting it is cheap;
+        // parsing it is not, and there is no protobuf schema for a retro repo, so
+        // a generic decoder would be guessing at field numbers. Say so instead of
+        // reporting "invalid JSON" for a file that is not JSON at all.
+        if (body.isNotEmpty() && body[0].code !in 0x20..0x7E && !body.trimStart().startsWith("{")) {
+            return@withContext Result.failure(RepoException(RepoError.ProtobufIndex))
         }
 
         // Validate before storing: an index that yields zero usable sources is
@@ -186,4 +199,7 @@ fun RepoError.message(): String = when (this) {
     is RepoError.SchemaTooNew -> "That repository needs a newer version of Caddy (schema $version)."
     RepoError.AlreadyAdded -> "That repository is already added."
     is RepoError.InsecureUrl -> "That address uses plain HTTP. Use HTTPS, or a private LAN address."
+    RepoError.ProtobufIndex ->
+        "That is a protobuf index (index.pb). Caddy reads JSON indexes only: " +
+            "ask the repo for its index.json."
 }

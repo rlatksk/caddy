@@ -8,9 +8,12 @@
       "version": "1.0.0",
       "transport": "http",
       "adapter": "archive_org",
-      "systems": ["genesis"],
+      "systems": ["genesis", "psx"],
       "config": {
-        "collections": { "genesis": "replace_with_a_real_collection_id" }
+        "collections": {
+          "genesis": "sega_genesis_library",
+          "psx": "psxgames"
+        }
       }
     },
     {
@@ -19,10 +22,32 @@
       "version": "1.0.0",
       "transport": "torrent",
       "adapter": "minerva",
+      "systems": ["gba", "psx"],
+      "config": {
+        "baseUrl": "https://minerva-archive.org",
+        "paths": {
+          "gba": "No-Intro/Nintendo - Game Boy Advance",
+          "psx": "Redump/Sony - PlayStation"
+        }
+      }
+    },
+    {
+      "id": "example_html",
+      "name": "Example Scraped Site",
+      "version": "1.0.0",
+      "transport": "http",
+      "adapter": "html_index",
       "systems": ["gba"],
       "config": {
-        "baseUrl": "https://example.invalid",
-        "paths": { "gba": "No-Intro/Example System" }
+        "baseUrl": "https://www.romsgames.net",
+        "listings": {
+          "gba": {
+            "url": "https://www.romsgames.net/roms/gameboy-advance/",
+            "itemSelector": "a[href*='-rom-']",
+            "titleSelector": "img",
+            "downloadSelector": "img"
+          }
+        }
       }
     }
   ]

@@ -63,8 +63,18 @@ Rules that are load-bearing:
 | `archive_org` | http | `collections`: system → archive.org collection id |
 | `minerva` | torrent | `baseUrl`, `paths`: system → browse path |
 | `dlarchive` | http | `baseUrl`, `extensions`: system → file extensions |
-| `html_index` | http | `baseUrl`, `pages`: system → CSS selectors |
-| `browser_capture` | browser | `captureHost`, `pages`: system → listing URL |
+| `html_index` | http | `baseUrl`, `listings`: system → URL + CSS selectors |
+
+`browser_capture` remains in the schema enum so a repo that declares it still
+validates, but this build does not implement it: the adapter is skipped, and the
+source simply does not appear. It was dropped after testing — every system it
+was meant to reach is already served by `minerva` over BitTorrent, which needs no
+session or captcha, while a WebView still leaves the file to a manual tap.
+
+`index.pb` (protobuf) is likewise not read. Mihon's official repo publishes only
+protobuf, but there is no protobuf schema for a retro index, so a decoder would
+be guessing at field numbers. The fetcher detects the format and says so instead
+of reporting "invalid JSON".
 
 ## Sources are not in this repository
 
@@ -120,6 +130,26 @@ core/build/install/core/bin/core repo/index.json genesis /path/to/ROMs --title=S
 Reads the index, lists a system, resolves one game, downloads it to
 `<roms>/<system>/`, verifies SHA-1/CRC32, and only then moves it into place.
 
+Browse and pick parts from the command line:
+
+```sh
+core repo/index.json switch ROMs --list=20          # first 20 entries
+core repo/index.json switch ROMs --page=2           # next page
+core repo/index.json switch ROMs --title=zelda --list
+core repo/index.json switch ROMs --title=zelda --part=base,update,dlc
+```
+
+Switch files are grouped by title id: a base game carries its update and DLC in
+`variants`, and the app offers them as a chooser when you tap the game.
+
+## Updating
+
+The app has a **Check update** button. It reads `versions.json` from the release
+channel, compares `versionCode`, downloads the APK, verifies its SHA-256, and
+verifies the APK's signing certificate matches the installed app before handing
+it to the system installer. That certificate check is the load-bearing one: a
+swapped manifest can only point at an APK signed with this project's key.
+
 ```sh
 gradle :core:test
 ```
@@ -136,14 +166,22 @@ the engine needs per row:
   <a onclick="downloadMagnet('magnet:?xt=urn:btih:00000000deadbeef...')" data-m="3">
 ```
 
-`data-m` is the **file index inside the collection torrent**. So:
+`data-m` is a **row index on the page, not the file index inside the torrent**.
+The two orders differ: asking the GBA torrent for index 2128 returned
+`Minicraft`, while Metroid Fusion was at 2110. So the downloader matches the
+torrent's own file path by the filename the catalog showed, and keeps the page
+index only as a fallback.
 
-1. One HTTP request lists all 3,688 GBA files, each with index and size.
+1. One HTTP request lists all 3,688 GBA files, each with a size.
 2. Catalog dedupe collapses them to ~2,043 games.
-3. Picking a game sets file priority on exactly one index in a 14.86 GB torrent.
+3. Picking a game resolves the collection's magnet, waits for metadata, then
+   sets file priority on exactly one file and downloads it sequentially into a
+   staging folder.
 
-No scraping per game, and no whole-collection download. `ResolvedDownload.Torrent`
-carries `fileIndex` for this reason.
+No scraping per game, and no whole-collection download. The magnet on the page
+carries **no trackers** — the site appends 38 of them in JavaScript — so the
+adapter reads `const trackers = "&tr=..."` from the page and appends it. Without
+that, a quiet collection connects peers and never exchanges metadata.
 
 ## What is verified
 
@@ -160,8 +198,15 @@ Probed live on 2026-10-22, not assumed:
   **torrent-only** — every direct path 404s.
 - `libtorrent4j-android-arm64` 2.1.0-39 ships `lib/arm64-v8a/libtorrent4j.so`
   in a plain jar, no AAR needed.
-- Minerva GBA page: 3,688 rows, `data-m` values 0-3687 unique, one infohash.
-  Parsed from a checked-in fixture, not assumed.
+- Minerva GBA page: 3,688 rows, one infohash. The PSX collection has 11,170
+  files; its swarm is thin enough that metadata exchange stalls, while Saturn
+  (2,500 files) completes in seconds.
+- dlarchive: 14,993 rows, 3,440 Switch files, 2,107 base games after the title-id
+  rule. `file-url` returns a token-free link valid 24 h, verified by `HEAD`.
+- Switch DLC/updates group with their base game by the shared 12-hex title-id
+  prefix, verified by downloading three Witcher 3 DLCs.
+- Download queue survives process death: killed at 54.1 MB, resumed, final file
+  matched the source size exactly.
 - Myrient returns a 2,334-byte shutdown tombstone. Dead since 2026-03-31.
 - `romsfun` returns 403 from a datacenter IP; `vimm.net` gates on Cloudflare
   Turnstile. Neither is worth an adapter.
