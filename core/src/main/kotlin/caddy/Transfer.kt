@@ -3,6 +3,7 @@ package caddy
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
+import java.io.IOException
 import java.io.RandomAccessFile
 import java.security.MessageDigest
 import java.util.zip.CRC32
@@ -58,9 +59,44 @@ fun verify(file: File, hashes: Hashes): VerifyResult {
  */
 class HttpDownloader(private val http: OkHttpClient) {
 
+    /**
+     * Resumable download with stall recovery. Large files on these mirrors stall
+     * mid-transfer (the server stops sending, OkHttp times out); each attempt
+     * resumes from the bytes already on disk, so a stall costs one read timeout
+     * instead of the whole download. Gives up after [MAX_STALLS] attempts that
+     * made no progress at all.
+     */
     fun download(direct: ResolvedDownload.Direct, destination: File, onProgress: (Long, Long) -> Unit = { _, _ -> }): File {
         destination.parentFile?.mkdirs()
         val part = File(destination.parentFile, destination.name + ".part")
+        var stalls = 0
+        while (true) {
+            val before = if (part.exists()) part.length() else 0L
+            try {
+                return attempt(direct, destination, part, onProgress)
+            } catch (e: Exception) {
+                val retryable = when (e) {
+                    is SourceUnavailable -> e.retryable
+                    is IOException -> true
+                    else -> false
+                }
+                if (!retryable) throw e
+                val after = if (part.exists()) part.length() else 0L
+                stalls = if (after > before) 0 else stalls + 1
+                if (stalls >= MAX_STALLS) {
+                    throw SourceUnavailable("download stalled at $after bytes: ${e.message}", retryable = true)
+                }
+                Thread.sleep(1000L * stalls)
+            }
+        }
+    }
+
+    private fun attempt(
+        direct: ResolvedDownload.Direct,
+        destination: File,
+        part: File,
+        onProgress: (Long, Long) -> Unit,
+    ): File {
         var offset = if (part.exists()) part.length() else 0L
 
         val request = Request.Builder()
@@ -125,5 +161,8 @@ class HttpDownloader(private val http: OkHttpClient) {
         }
     }
 
-    private companion object { const val UA = "caddy/0.1" }
+    private companion object {
+        const val UA = "caddy/0.1"
+        const val MAX_STALLS = 6
+    }
 }
