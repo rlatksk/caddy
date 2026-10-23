@@ -13,6 +13,8 @@ This repo currently holds the contract and the spike the PRD says to build first
 | `tools/gen_repo.py` | Builds that local list from live probes. |
 | `tools/validate_repo.py` | Offline validator: JSON Schema + ES-DE names + config/systems agreement. |
 | `core/` | Kotlin: index parsing, catalog dedupe, adapters, download+verify+place. |
+| `DESIGN.md` | The app's visual contract: tokens, layout metrics, state vocabulary, D-pad model. |
+| `design/ui.html` | Working UI prototype at the device's real 832×444 dp, driven by the D-pad. |
 
 ## The routing model
 
