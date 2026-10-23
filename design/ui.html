@@ -13,19 +13,17 @@
     -webkit-font-smoothing:antialiased;
   }
   ::selection{background:#2f3a34;color:#e8ebe8}
-
   .wrap{max-width:920px;margin:0 auto;padding:22px 20px 60px}
 
   .top{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;border-bottom:1px solid #26272a;padding-bottom:12px;margin-bottom:18px}
-  .top h1{font-size:15px;letter-spacing:.18em;text-transform:uppercase;color:#ecece8;margin:0;font-weight:600}
+  .top h1{font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:#ecece8;margin:0;font-weight:600}
   .top p{margin:0;font-size:12px;color:#94948e;line-height:1.5}
   .top p b{color:#c6c6c1;font-weight:600}
 
   .tabs{display:flex;gap:6px;margin:0 0 14px;flex-wrap:wrap}
   .tab{
     font:inherit;font-size:12px;letter-spacing:.1em;text-transform:uppercase;
-    background:transparent;color:#8f8f8a;border:1px solid #2a2b2e;
-    padding:7px 12px;cursor:pointer;
+    background:transparent;color:#8f8f8a;border:1px solid #2a2b2e;padding:7px 12px;cursor:pointer;
   }
   .tab:hover{color:#c6c6c1;border-color:#3a3b3f}
   .tab[aria-selected="true"]{background:#d7d9d6;color:#08090a;border-color:#d7d9d6}
@@ -35,291 +33,182 @@
   .frame{display:flex;flex-direction:column;gap:7px}
   .flabel{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8f8f8a}
 
-  /* ===================== APP ===================== */
+  /* ============ DAT SHEET ============ */
   .app{
-    --bg:#08090a;
-    --rail:#0a0b0c;
-    --head:#0b0c0d;
-    --field:#0e1011;
-    --line:#1e2122;
-    --line2:#151718;
-    --fg:#d7d9d6;
-    --dim:#9aa09a;
-    --amber:#f0b429;
-    --green:#4ade80;
-    --red:#ff6b6e;
-    --rail-w:136px;
-    --detail-w:292px;
+    --fg:#d7d9d6;--mute:#7d827c;--line:#1c1e1f;--line2:#141617;--amber:#f0b429;--green:#3ecf72;--red:#ff6b6e;
+    --rail:88px;--detail:300px;
 
     width:832px;height:444px;overflow:hidden;position:relative;
-    display:grid;grid-template-columns:var(--rail-w) 1fr;
-    background:var(--bg);color:var(--fg);
-    font-family:ui-monospace,"Roboto Mono","SF Mono",Menlo,Consolas,monospace;
+    display:grid;grid-template-columns:var(--rail) 1fr;
+    /* The screen is 832x444 dp with rounded corners and a bezel; content that
+       touches the physical edge reads as clipped. 12 dp all round is the
+       safe-area frame, and every panel sits inside it. */
+    padding:12px;
+    background:#08090a;color:var(--fg);
+    font-family:ui-monospace,"SF Mono","Roboto Mono",Menlo,Consolas,monospace;
     font-size:12.5px;font-variant-numeric:tabular-nums;
     outline:1px solid #2a2b2e;
   }
-  .app button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
-  .app :focus-visible{outline:2px solid var(--amber);outline-offset:-2px}
-  .app ::selection{background:#2c3a31;color:#e8ebe8}
-  .app ::placeholder{color:#7f857f}
-
-  /* ---------- rail ---------- */
-  .rail{
-    border-right:1px solid var(--line);background:var(--rail);
-    display:flex;flex-direction:column;min-height:0;
-  }
-  .rail-h{
-    padding:9px 11px 7px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;
-    color:var(--dim);border-bottom:1px solid var(--line);
-  }
-  .systems{overflow:hidden;flex:1;min-height:0}
-  .sys{
-    width:100%;display:grid;grid-template-columns:1fr auto;align-items:baseline;
-    gap:4px;padding:8px 11px;border-bottom:1px solid var(--line2);text-align:left;
-  }
-  .sys .nm{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--fg)}
-  .sys .n{font-size:11px;color:var(--dim)}
-  .sys:hover{background:#0f1112}
-  .sys[aria-current="true"]{background:var(--fg);color:var(--bg)}
-  .sys[aria-current="true"] .nm{color:var(--bg);font-weight:700}
-  .sys[aria-current="true"] .n{color:#4a4d48}
-  .sys:focus-visible{outline-offset:-2px}
-
-  .rail-foot{margin-top:auto;border-top:1px solid var(--line)}
-  .rail-btn{
-    width:100%;display:flex;align-items:center;gap:8px;
-    padding:9px 11px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
-    color:var(--dim);text-align:left;border-bottom:1px solid var(--line2);
-  }
-  .rail-btn:last-child{border-bottom:0}
-  .rail-btn:hover{color:var(--fg);background:#0f1112}
-  .rail-btn .count{margin-left:auto;color:var(--amber);font-size:11px}
-  .rail-btn svg{width:13px;height:13px;flex:none;stroke:currentColor;fill:none;stroke-width:1.5}
-
-  /* ---------- main ---------- */
-  .main{display:flex;flex-direction:column;min-height:0;overflow:hidden}
-
-  .head{padding:7px 12px 6px;border-bottom:1px solid var(--line);background:var(--head);flex:none}
-  .search-row{display:flex;align-items:center;gap:8px}
-  .search{
-    flex:1;display:flex;align-items:center;gap:7px;
-    background:var(--field);border:1px solid #222526;padding:0 8px;height:28px;
-  }
-  .search:focus-within{border-color:var(--fg)}
-  .search svg{width:12px;height:12px;flex:none;stroke:#7f857f;fill:none;stroke-width:1.6}
-  .search input{
-    flex:1;background:none;border:0;outline:none;color:var(--fg);
-    font:inherit;font-size:12px;padding:0;min-width:0;
-  }
-  .icon-btn{
-    width:28px;height:28px;display:grid;place-items:center;flex:none;
-    border:1px solid #222526;background:var(--field);
-  }
-  .icon-btn:hover{border-color:#3a3d3e;color:#fff}
-  .icon-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.5}
-
-  .chips{display:flex;gap:2px;margin-top:6px;align-items:center}
-  .chip{
-    font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);
-    padding:3px 7px;border:1px solid transparent;
-  }
-  .chip:hover{color:var(--fg)}
-  .chip[aria-pressed="true"]{color:var(--bg);background:var(--fg);border-color:var(--fg)}
-  .chip-n{margin-left:auto;font-size:11px;color:var(--dim);letter-spacing:.06em}
-
-  /* ---------- list + detail ---------- */
-  .body{display:grid;grid-template-columns:1fr var(--detail-w);flex:1;min-height:0;overflow:hidden}
-  .list{overflow:hidden;min-height:0;display:flex;flex-direction:column}
-  .cols{
-    display:grid;grid-template-columns:1fr 56px 92px;gap:6px;
-    padding:0 12px;height:21px;align-items:center;
-    font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);
-    border-bottom:1px solid var(--line);background:#0b0c0d;flex:none;
-  }
-  .cols span:nth-child(n+2){text-align:right}
-  .rows{overflow:hidden;flex:1;min-height:0}
-
-  .row{
-    width:100%;display:grid;grid-template-columns:1fr 56px 92px;gap:6px;
-    align-items:center;padding:0 12px;height:40px;text-align:left;
-    border-bottom:1px solid var(--line2);
-  }
-  .row:hover{background:#0d0f10}
-  .row .t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12.5px}
-  .row .z{text-align:right;font-size:12px;color:var(--dim)}
-  .row .s{text-align:right;font-size:11px;letter-spacing:.02em;color:var(--dim);white-space:nowrap}
-  .row[aria-selected="true"]{background:var(--fg);color:var(--bg)}
-  .row[aria-selected="true"] .t{color:var(--bg);font-weight:700}
-  .row[aria-selected="true"] .z{color:#4a4d48}
-  .row[aria-selected="true"] .s{color:#2f3330}
-  .row[aria-selected="true"] .s.is-run{color:#7a5a00}
-  .row[aria-selected="true"] .s.is-done{color:#1c6b3a}
-  .row[aria-selected="true"] .s.is-fail{color:#a3262a}
-
-  /* Focus: the list already inverts its selected row, so the cursor and the
-     selection are the same thing there. Everything else takes a hairline
-     offset ring in the paper colour, which is how this world draws a box. */
+  .app button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;text-align:left}
   .app :focus{outline:none}
-  .focusable.is-focused{outline:1px solid var(--fg);outline-offset:-1px}
-  .row.is-focused{outline:1px solid var(--fg);outline-offset:-1px}
-  .qrow.is-focused{background:#141718;outline:1px solid var(--fg);outline-offset:-1px}
-  .sys.is-focused{outline:1px solid var(--fg);outline-offset:-1px}
-  .sys[aria-current="true"].is-focused{outline-color:var(--paper)}
+  .app ::placeholder{color:#6a6f69}
+  .app .is-focused{outline:1px solid var(--fg);outline-offset:-1px}
 
-  .s.is-run{color:var(--amber)}
-  .s.is-done{color:var(--green)}
-  .s.is-fail{color:var(--red)}
-  .s.is-pause{color:#8fb8e8}
+  .rail{border-right:1px solid var(--line);padding:5px 0;display:flex;flex-direction:column;min-height:0}
+  .sys{padding:8px 10px;display:flex;justify-content:space-between;font-size:12px;width:100%}
+  .sys .n{color:var(--mute)}
+  .sys.on{background:var(--fg);color:#08090a}
+  .sys.on .n{color:#4a4d48}
+  .systems{flex:1;min-height:0;overflow:hidden}
+  .railfoot{margin-top:auto;border-top:1px solid var(--line)}
+  .railbtn{display:flex;justify-content:space-between;width:100%;padding:9px 10px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute)}
+  .railbtn:hover{color:var(--fg)}
+  .railbtn b{color:var(--amber);font-weight:400}
 
-  .empty{
-    padding:26px 14px;font-size:12px;line-height:1.7;color:var(--dim);
-  }
-  .empty b{color:var(--fg);font-weight:400}
+  .main{display:flex;flex-direction:column;min-height:0;overflow:hidden}
+  .bar{height:46px;padding:0 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);flex:none;gap:12px}
+  h1{margin:0;font-size:12px;letter-spacing:.18em;text-transform:uppercase;font-weight:500}
+  .meta{font-size:11px;color:var(--mute);letter-spacing:.04em;margin-top:3px}
+  .q{background:#0e1011;border:1px solid #222526;color:var(--fg);font:inherit;font-size:12px;padding:5px 8px;width:196px;outline:none}
+  .q::placeholder{color:#8b908a}
+  .q:focus{border-color:var(--fg)}
 
-  /* ---------- detail ---------- */
-  .detail{
-    border-left:1px solid var(--line);padding:11px 12px 10px;
-    display:flex;flex-direction:column;min-height:0;overflow:hidden;
-  }
-  .poster-row{display:grid;grid-template-columns:auto 1fr;gap:10px;flex:none;align-items:start}
-  .poster{
-    width:112px;height:160px;background:#0e1011;border:1px solid #222526;
-    position:relative;overflow:hidden;display:grid;place-items:center;flex:none;
-  }
+  .filters{height:23px;display:flex;align-items:center;gap:14px;padding:0 14px;border-bottom:1px solid var(--line);background:#0b0c0d;flex:none}
+  .fchip{font-size:11px;letter-spacing:.06em;text-transform:lowercase;color:var(--mute);padding:1px 3px}
+  .fchip:hover{color:var(--fg)}
+  .fchip[aria-pressed="true"]{color:var(--fg);background:#222526}
+  .fchip .n{color:#5c615b;margin-left:4px}
+  .fchip[aria-pressed="true"] .n{color:var(--amber)}
+  .fcount{margin-left:auto;font-size:11px;color:#5c615b}
+
+  .body{display:grid;grid-template-columns:1fr var(--detail);min-height:0;flex:1;overflow:hidden}
+  .list{overflow:hidden;display:flex;flex-direction:column;min-height:0}
+  .cols,.row{display:grid;grid-template-columns:1fr 52px 104px;gap:6px;align-items:center;padding:0 14px}
+  .cols{height:22px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);border-bottom:1px solid var(--line);background:#0b0c0d;flex:none}
+  .cols b{font-weight:400}
+  .cols b:nth-child(n+2){text-align:right}
+  .rows{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden}
+  .rows::-webkit-scrollbar{width:6px}
+  .rows::-webkit-scrollbar-thumb{background:#2a2e2c}
+  .row{height:34px;border-bottom:1px solid var(--line2);width:100%}
+  .row .t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .row .c{text-align:right;color:var(--mute)}
+  .row .s{text-align:right;white-space:nowrap}
+  .row.on{background:var(--fg);color:#08090a}
+  .row.on .c{color:#4a4d48}
+  .row.on .s{color:#08090a}
+  .row.on .s.run{color:#8a5f00}
+  .row.on .s.done{color:#1f6b41}
+  .row.on .s.fail{color:#a32a2a}
+  .row.on .s.hold{color:#2c5c8f}
+
+  .s.run{color:var(--amber)}
+  .s.que{color:var(--mute)}
+  .s.done{color:var(--green)}
+  .s.fail{color:var(--red)}
+  .s.hold{color:#8bb4e6}
+
+  .verify{height:27px;display:flex;align-items:center;gap:14px;padding:0 14px;background:#101314;border-bottom:1px solid var(--line2);font-size:11px;color:var(--mute);letter-spacing:.02em;flex:none}
+  .verify b{color:var(--green);font-weight:400;letter-spacing:.1em}
+
+  .empty{padding:20px 14px;font-size:12px;line-height:1.7;color:var(--mute)}
+
+  .detail{border-left:1px solid var(--line);padding:12px 14px;overflow:hidden;position:relative;display:flex;flex-direction:column;min-height:0}
+  .kick{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+  h2{margin:5px 0 3px;font-size:14px;line-height:1.35;font-weight:500;letter-spacing:-.01em}
+  .sub{font-size:11px;color:var(--mute)}
+  .rule{border-top:1px solid var(--line);margin:9px 0;flex:none}
+  .kv{display:flex;align-items:baseline;gap:6px;font-size:12px;line-height:1.65}
+  .kv i{font-style:normal;color:var(--mute);letter-spacing:.04em;font-size:11px;text-transform:uppercase}
+  .kv u{flex:1;border-bottom:1px dotted #33362f;text-decoration:none;transform:translateY(-3px)}
+  .kv b{font-weight:400}
+
+  .ident{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;flex:none}
+  .poster{width:80px;height:110px;background:#0e1011;border:1px solid #222526;overflow:hidden;position:relative;flex:none}
   .poster img{width:100%;height:100%;object-fit:contain;display:block}
   .poster .ph{
     position:absolute;inset:0;display:grid;place-items:center;text-align:center;
-    font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#5e635e;
-    background-image:repeating-linear-gradient(135deg,#121415 0 6px,#0e1011 6px 12px);
-    padding:8px;line-height:1.5;
+    font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#4d524c;
+    background-image:repeating-linear-gradient(135deg,#101314 0 6px,#0d0f10 6px 12px);
+    padding:6px;line-height:1.5;
   }
   .poster.has-art .ph{display:none}
 
-  .dtitle{font-size:14px;line-height:1.25;font-weight:700;letter-spacing:-.01em;margin:0 0 5px}
-  .dmeta{font-size:12px;line-height:1.6;color:var(--dim);letter-spacing:.02em}
-  .dmeta b{color:var(--fg);font-weight:400}
+  .syn{margin:0;font-size:11px;line-height:1.55;color:#9aa09a;overflow:hidden;
+       display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;
+       flex:1 1 auto;min-height:0}
 
-  .rule{border-top:1px solid var(--line);margin:9px 0 0;flex:none}
-  .syn{
-    font-size:12px;line-height:1.5;color:#b9bfb9;margin:8px 0 0;
-    overflow:hidden;flex:1;min-height:0;
-  }
-  .syn.is-off{color:#7f857f;font-style:normal}
-  .syn .k{color:var(--dim);letter-spacing:.06em;text-transform:uppercase;font-size:11px}
-
-  .acts{margin-top:auto;padding-top:9px;display:flex;flex-direction:column;gap:5px;flex:none}
-  .btn{
-    display:flex;align-items:center;justify-content:space-between;gap:8px;
-    padding:8px 10px;border:1px solid var(--fg);font-size:11px;
-    letter-spacing:.14em;text-transform:uppercase;
-  }
-  .btn .r{font-size:11px;letter-spacing:.02em;color:var(--dim);text-transform:none}
-  .btn:hover{background:#141618}
-  .btn.primary{background:var(--fg);color:var(--bg)}
-  .btn.primary .r{color:#4a4d48}
+  .btn{margin-top:10px;border:1px solid var(--fg);text-align:center;padding:8px 0;font-size:12px;letter-spacing:.14em;text-transform:uppercase;flex:none}
+  .btn:hover{background:#141718}
+  .btn.primary{background:var(--fg);color:#08090a}
   .btn.primary:hover{background:#eef0ec}
-  .btn.quiet{border-color:#2a2d2e;color:var(--dim)}
-  .btn.quiet:hover{border-color:#3f4344;color:var(--fg)}
-  .btn svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.6;flex:none}
+  .acts{margin-top:auto;padding-top:10px;flex:none}
 
-  /* ---------- queue ---------- */
-  .qhead{
-    padding:9px 12px;border-bottom:1px solid var(--line);background:var(--head);
-    display:flex;align-items:center;gap:10px;flex:none;
-  }
-  .qhead h2{margin:0;font-size:13px;letter-spacing:.16em;text-transform:uppercase;font-weight:500}
-  .qhead .sum{font-size:11px;color:var(--dim);letter-spacing:.04em}
-  .qhead .sp{margin-left:auto;display:flex;gap:5px}
-  .qbtn{
-    display:flex;align-items:center;gap:6px;padding:6px 9px;border:1px solid #2a2d2e;
-    font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);
-  }
-  .qbtn:hover{color:var(--fg);border-color:#3f4344}
-  .qbtn svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.6}
+  .queue{padding:0 14px;display:flex;flex-direction:column;overflow:hidden;flex:1;min-height:0}
+  .qsum{display:flex;justify-content:space-between;align-items:center;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);padding:9px 0 8px;border-bottom:1px solid var(--line);flex:none}
+  .qsum .sp{display:flex;gap:8px}
+  .qbtn{border:1px solid #33362f;padding:4px 9px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+  .qbtn:hover{border-color:var(--fg);color:var(--fg)}
+  .qlist{flex:1;min-height:0;overflow-y:auto}
+  .qlist::-webkit-scrollbar{width:6px}
+  .qlist::-webkit-scrollbar-thumb{background:#2a2e2c}
+  .qrow{display:grid;grid-template-columns:1fr 142px 96px 76px 76px;gap:10px;align-items:center;height:38px;border-bottom:1px solid var(--line2);font-size:12px;padding:0 4px}
+  .qrow .t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .qrow .t small{color:var(--mute);font-size:11px;display:block;letter-spacing:.02em}
+  .bar10{letter-spacing:-1px;font-size:12px;white-space:nowrap;overflow:hidden}
+  .bar10 b{color:var(--amber);font-weight:400}
+  .bar10 s{color:#3a3d38;text-decoration:none}
+  .bar10 i{font-style:normal;color:var(--mute);letter-spacing:.02em;font-size:11px;margin-left:6px}
+  .qrow .b{text-align:right;font-size:11px;color:var(--mute)}
+  .qrow .s{text-align:right;font-size:11px;letter-spacing:.06em}
+  .qacts{display:flex;gap:4px;justify-content:flex-end}
+  .qacts button{border:1px solid #2a2e2c;padding:3px 6px;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);line-height:1.2}
+  .qacts button:hover{border-color:var(--fg);color:var(--fg)}
+  .qacts .kill:hover{border-color:#5c2a2c;color:var(--red)}
 
-  .qlist{flex:1;min-height:0;overflow:hidden}
-  .qrow{
-    display:grid;grid-template-columns:1fr 104px 84px 78px 56px;
-    gap:10px;align-items:center;padding:0 12px;
-    border-bottom:1px solid var(--line2);height:58px;
-  }
-  .qrow:hover{background:#0d0f10}
-  .qrow[aria-selected="true"]{background:#101314}
-  .qrow .qt{font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .qrow .qm{font-size:11px;color:var(--dim);margin-top:2px;letter-spacing:.02em}
-  .qbar{display:flex;gap:2px;height:8px;align-items:flex-end}
-  .qbar i{flex:1;height:4px;background:#252829}
-  .qbar i.on{background:var(--amber);height:8px}
-  .qbar i.pk{background:var(--red);height:8px}
-  .qbar i.dn{background:var(--green);height:8px}
-  .qbar i.pz{background:#8fb8e8;height:8px}
-  .qbytes{font-size:11px;color:var(--dim);text-align:right;letter-spacing:.02em}
-  .qstate{font-size:11px;text-align:right;letter-spacing:.06em}
-  .qact{display:flex;gap:4px;justify-content:flex-end}
-  .qact button{
-    width:24px;height:24px;display:grid;place-items:center;border:1px solid #242829;
-  }
-  .qact button:hover{border-color:#3f4344;color:#fff}
-  .qact svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.6}
-  .qact .kill:hover{border-color:#5c2a2c;color:var(--red)}
+  .st-run{color:var(--amber)}.st-que{color:var(--mute)}.st-done{color:var(--green)}.st-fail{color:var(--red)}.st-hold{color:#8bb4e6}
 
   /* ---------- sources ---------- */
-  .sheet{flex:1;min-height:0;overflow:hidden;padding:12px 14px;display:flex;flex-direction:column;gap:11px}
-  .sheet h2{margin:0;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);font-weight:400}
-  .field{display:flex;align-items:center;gap:8px}
-  .field label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);width:88px;flex:none}
-  .field input[type=text]{
-    flex:1;background:var(--field);border:1px solid #222526;color:var(--fg);
-    font:inherit;font-size:12px;padding:5px 8px;outline:none;min-width:0;
-  }
-  .field input[type=text]:focus{border-color:var(--fg)}
-  .field .hint{font-size:11px;color:#7f857f;letter-spacing:.02em}
+  .sheet{padding:12px 14px;display:flex;flex-direction:column;gap:12px;flex:1;min-height:0;overflow:hidden}
+  .sheet h3{margin:0 0 6px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);font-weight:400}
+  .frow{display:flex;align-items:center;gap:8px}
+  .frow label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);width:88px;flex:none}
+  .frow input{flex:1;background:#0e1011;border:1px solid #222526;color:var(--fg);font:inherit;font-size:12px;padding:5px 8px;outline:none;min-width:0}
+  .frow input:focus{border-color:var(--fg)}
+  .hint{font-size:11px;color:#5c615b}
 
-  .sysgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line)}
-  .syscell{
-    background:var(--bg);display:flex;align-items:center;gap:7px;
-    padding:7px 9px;font-size:12px;letter-spacing:.04em;text-align:left;width:100%;
-  }
-  .syscell:hover{background:#0f1112}
-  .syscell .box{
-    width:11px;height:11px;border:1px solid #4a4f4a;flex:none;display:grid;place-items:center;
-  }
-  .syscell[aria-pressed="true"] .box{background:var(--fg);border-color:var(--fg)}
-  .syscell[aria-pressed="true"] .box::after{
-    content:"";width:7px;height:4px;border-left:1.6px solid var(--bg);border-bottom:1.6px solid var(--bg);
-    transform:rotate(-45deg) translateY(-1px);
-  }
-  .syscell .nm{color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .syscell[aria-pressed="true"] .nm{color:var(--fg)}
-  .syscell .n{margin-left:auto;font-size:11px;color:#8b908b}
-  .syscell[aria-pressed="true"] .n{color:var(--dim)}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+  .cell{display:flex;align-items:center;gap:7px;padding:6px 8px;background:#0e1011;border:1px solid #222526;font-size:12px;width:100%}
+  .cell:hover{border-color:#3a3d3e}
+  .cell .box{width:11px;height:11px;border:1px solid #454b46;flex:none;display:grid;place-items:center}
+  .cell[aria-pressed="true"] .box{background:var(--fg);border-color:var(--fg)}
+  .cell[aria-pressed="true"] .box::after{content:"";width:7px;height:4px;border-left:1.6px solid #08090a;border-bottom:1.6px solid #08090a;transform:rotate(-45deg) translateY(-1px)}
+  .cell .nm{color:var(--mute);letter-spacing:.04em}
+  .cell[aria-pressed="true"] .nm{color:var(--fg)}
+  .cell .n{margin-left:auto;color:#4d524c;font-size:10.5px}
+  .cell[aria-pressed="true"] .n{color:var(--mute)}
 
-  .toggle{display:flex;align-items:center;gap:9px;font-size:12px;letter-spacing:.02em;text-align:left}
-  .toggle .sw{width:26px;height:14px;border:1px solid #4a4f4a;flex:none;position:relative}
-  .toggle .sw::after{content:"";position:absolute;top:1px;left:1px;width:10px;height:10px;background:#4a4f4a}
-  .toggle[aria-pressed="true"] .sw{border-color:var(--fg)}
-  .toggle[aria-pressed="true"] .sw::after{left:13px;background:var(--fg)}
-  .toggle .txt{color:var(--dim)}
-  .toggle[aria-pressed="true"] .txt{color:var(--fg)}
-
-  .foot-note{font-size:11px;color:#7f857f;line-height:1.6;margin-top:auto}
+  .tog{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--mute)}
+  .tog .sw{width:24px;height:13px;border:1px solid #454b46;position:relative;flex:none}
+  .tog .sw::after{content:"";position:absolute;top:1px;left:1px;width:9px;height:9px;background:#454b46}
+  .tog[aria-pressed="true"] .sw{border-color:var(--fg)}
+  .tog[aria-pressed="true"] .sw::after{left:12px;background:var(--fg)}
+  .tog[aria-pressed="true"] .txt{color:var(--fg)}
+  .footnote{font-size:11px;color:#5c615b;line-height:1.6;margin-top:auto}
 
   /* ---------- first run ---------- */
-  .firstrun{
-    grid-column:1/-1;display:grid;place-items:center;padding:0 40px;background:var(--bg);
-  }
-  .fr-inner{max-width:520px;width:100%}
-  .fr-inner h2{font-size:16px;margin:0 0 6px;font-weight:700;letter-spacing:-.01em}
-  .fr-inner p{margin:0 0 14px;font-size:12px;line-height:1.65;color:var(--dim)}
-  .fr-inner p b{color:var(--fg);font-weight:400}
-  .fr-row{display:flex;gap:6px;align-items:center}
-  .fr-row input{
-    flex:1;background:var(--field);border:1px solid #222526;color:var(--fg);
-    font:inherit;font-size:12px;padding:8px 10px;outline:none;min-width:0;
-  }
-  .fr-row input:focus{border-color:var(--fg)}
-  .fr-actions{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
+  .firstrun{grid-column:1/-1;display:grid;place-items:center;padding:0 40px}
+  .fr{max-width:520px;width:100%}
+  .fr h2{font-size:16px;margin:0 0 6px;font-weight:500;letter-spacing:.02em}
+  .fr p{margin:0 0 14px;font-size:12px;line-height:1.7;color:var(--mute)}
+  .fr p b{color:var(--fg);font-weight:400}
+  .frrow{display:flex;gap:6px}
+  .frrow input{flex:1;background:#0e1011;border:1px solid #222526;color:var(--fg);font:inherit;font-size:12px;padding:7px 9px;outline:none;min-width:0}
+  .frrow input:focus{border-color:var(--fg)}
+  .frbtns{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+  .frbtns .qbtn{padding:6px 10px}
 
+  /* ---------- page ---------- */
   .note{font-size:12px;color:#8f8f8a;line-height:1.65;margin:12px 0 0;max-width:96ch}
   .note b{color:#c6c6c1;font-weight:600}
   .note code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;color:#b9bfb9}
@@ -330,7 +219,7 @@
 
   <div class="top">
     <h1>Caddy — UI</h1>
-    <p>Drawn at <b>832 × 444 dp</b>, the Retroid Pocket 6's landscape app area. Click rows, chips, and controls.</p>
+    <p>832 × 444 dp. Arrow keys are the D-pad, Enter is A, X is queue, Y is search, Backspace is B.</p>
   </div>
 
   <div class="tabs" role="tablist">
@@ -342,57 +231,12 @@
 
   <div class="frame">
     <div class="flabel" id="screenLabel">Browse</div>
-    <div class="scale">
-      <div class="app" id="app"></div>
-    </div>
+    <div class="scale"><div class="app" id="app"></div></div>
   </div>
 
   <p class="note">
-    <b>Posters load from libretro's CDN</b> — the real files, at the real URLs, for the selected game only.
-    Each system's boxart index is one directory request (603 KB for Genesis, 2.4 s), cached on disk; after that a poster is a single image fetch.
-    No cover art is loaded while scrolling.
-  </p>
-
-  <h2 style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#8f8f8a;margin:26px 0 8px;font-weight:400">Metadata sources — probed 2026-10-23</h2>
-  <table style="width:100%;border-collapse:collapse;font-size:12px;line-height:1.5">
-    <thead>
-      <tr style="text-align:left;color:#8f8f8a;font-size:12px;letter-spacing:.08em;text-transform:uppercase">
-        <th style="padding:6px 8px 6px 0;border-bottom:1px solid #26272a;font-weight:400">Source</th>
-        <th style="padding:6px 8px;border-bottom:1px solid #26272a;font-weight:400">Key</th>
-        <th style="padding:6px 8px;border-bottom:1px solid #26272a;font-weight:400">Gives</th>
-        <th style="padding:6px 8px;border-bottom:1px solid #26272a;font-weight:400">Measured</th>
-      </tr>
-    </thead>
-    <tbody style="color:#b9bfb9">
-      <tr>
-        <td style="padding:7px 8px 7px 0;border-bottom:1px solid #1c1e1f;color:#d7d9d6">libretro thumbnails</td>
-        <td style="padding:7px 8px;border-bottom:1px solid #1c1e1f">none</td>
-        <td style="padding:7px 8px;border-bottom:1px solid #1c1e1f">box art</td>
-        <td style="padding:7px 8px;border-bottom:1px solid #1c1e1f">20/26 by exact filename; one directory index per system fixes the rest</td>
-      </tr>
-      <tr>
-        <td style="padding:7px 8px 7px 0;border-bottom:1px solid #1c1e1f;color:#d7d9d6">ScreenScraper</td>
-        <td style="padding:7px 8px;border-bottom:1px solid #1c1e1f">devid + account</td>
-        <td style="padding:7px 8px;border-bottom:1px solid #1c1e1f">synopsis, genre, year, dev, players, art, screenshots</td>
-        <td style="padding:7px 8px;border-bottom:1px solid #1c1e1f">rejects unauthenticated calls; quota is per-account per minute and per day</td>
-      </tr>
-      <tr>
-        <td style="padding:7px 8px 7px 0;border-bottom:1px solid #1c1e1f;color:#d7d9d6">SteamGridDB</td>
-        <td style="padding:7px 8px;border-bottom:1px solid #1c1e1f">per-user key</td>
-        <td style="padding:7px 8px;border-bottom:1px solid #1c1e1f">grids, heroes, logos, icons</td>
-        <td style="padding:7px 8px;border-bottom:1px solid #1c1e1f">401 without a key; artwork only, no descriptions</td>
-      </tr>
-      <tr>
-        <td style="padding:7px 8px 7px 0;color:#d7d9d6">Wikipedia summary</td>
-        <td style="padding:7px 8px">none</td>
-        <td style="padding:7px 8px">description, box art</td>
-        <td style="padding:7px 8px">resolves 9/9 but picks the wrong article 4/9 — not safe unsupervised</td>
-      </tr>
-    </tbody>
-  </table>
-  <p class="note">
-    The app fetches metadata for <b>one title at a time</b>, when you select it, and keeps it on disk.
-    Nothing is fetched while scrolling, and nothing is fetched for a system you have not enabled.
+    <b>Posters</b> come from libretro's CDN, fetched for the selected title only and cached; the frame takes the art's own ratio.
+    <b>Descriptions</b> come from ScreenScraper, which needs a free account for its quota.
   </p>
 </div>
 
@@ -400,125 +244,108 @@
 (() => {
   "use strict";
 
-  // ---------- data ----------
   const LIBRETRO = "https://thumbnails.libretro.com/";
   const art = (root, name) => LIBRETRO + encodeURIComponent(root) + "/Named_Boxarts/" + encodeURIComponent(name) + ".png";
 
   const SYSTEMS = [
-    { id: "genesis", name: "Genesis", count: 2043 },
-    { id: "snes", name: "SNES", count: 1841 },
-    { id: "gba", name: "GBA", count: 2043 },
-    { id: "psx", name: "PSX", count: 11170 },
-    { id: "nes", name: "NES", count: 1179 },
-    { id: "n64", name: "N64", count: 388 },
-    { id: "nds", name: "NDS", count: 6074 },
-    { id: "switch", name: "Switch", count: 2107 },
+    { id: "genesis", code: "GEN", name: "Genesis", count: 2043 },
+    { id: "snes", code: "SNE", name: "SNES", count: 1841 },
+    { id: "gba", code: "GBA", name: "Game Boy Advance", count: 2043 },
+    { id: "psx", code: "PSX", name: "PlayStation", count: 11170 },
+    { id: "nes", code: "NES", name: "NES", count: 1179 },
+    { id: "n64", code: "N64", name: "Nintendo 64", count: 388 },
+    { id: "nds", code: "NDS", name: "Nintendo DS", count: 6074 },
+    { id: "switch", code: "SWI", name: "Switch", count: 2107 },
   ];
-  const SYSTEM_NAME = Object.fromEntries(SYSTEMS.map((s) => [s.id, s.name]));
+  const BY_ID = Object.fromEntries(SYSTEMS.map((s) => [s.id, s]));
 
   const GAMES = {
     genesis: [
-      { t: "Sonic the Hedgehog", z: "3.1 MB", region: "USA / Europe", year: "1991", genre: "Platform", dev: "Sonic Team", players: "1", state: "done",
-        sha: "8f2c…9de0", art: art("Sega - Mega Drive - Genesis", "Sonic The Hedgehog (USA, Europe)"),
+      { t: "Sonic the Hedgehog (USA, Europe)", short: "Sonic the Hedgehog", z: "3.1M", size: "3.1 MB", region: "USA / Europe", year: "1991", dev: "Sega", genre: "Platform", players: "1 player", state: "done", pct: 100,
+        hash: "8f2c…9de0", crc: "4b19c7", art: art("Sega - Mega Drive - Genesis", "Sonic The Hedgehog (USA, Europe)"),
         syn: "A blue hedgehog who can run at supersonic speed races through six zones to free small animals from Dr. Robotnik's machine army. Momentum is the whole game: slopes, loops and springs reward holding speed, and the spin dash lets you build it from a standstill." },
-      { t: "Streets of Rage 2", z: "2.4 MB", region: "USA", year: "1992", genre: "Beat 'em up", dev: "Sega AM7", players: "1–2", state: "run", pct: 47, speed: "1.2 MB/s",
-        sha: "2b7e…11f3", art: art("Sega - Mega Drive - Genesis", "Streets of Rage 2 (USA)"),
+      { t: "Streets of Rage 2 (USA)", short: "Streets of Rage 2", z: "2.4M", size: "2.4 MB", region: "USA", year: "1992", dev: "Sega", genre: "Beat 'em up", players: "1–2 players", state: "run", pct: 47,
+        hash: "2b7e…11f3", crc: "90aa11", art: art("Sega - Mega Drive - Genesis", "Streets of Rage 2 (USA)"),
         syn: "Four fighters cross a city Mr. X has taken over, one side-scrolling street at a time. Each character has a distinct move set, and a second player can join at any point without a lobby." },
-      { t: "Gunstar Heroes", z: "2.0 MB", region: "USA", year: "1993", genre: "Run and gun", dev: "Treasure", players: "1–2", state: "que",
-        sha: "77c1…5b28", art: art("Sega - Mega Drive - Genesis", "Gunstar Heroes (USA)"),
+      { t: "Gunstar Heroes (USA)", short: "Gunstar Heroes", z: "2.0M", size: "2.0 MB", region: "USA", year: "1993", dev: "Treasure", genre: "Run and gun", players: "1–2 players", state: "que", pct: 0,
+        hash: "77c1…5b28", crc: "0e4d5b", art: art("Sega - Mega Drive - Genesis", "Gunstar Heroes (USA)"),
         syn: "Two brothers fight an empire across seven stages, combining four weapon types into ten firing modes. Bosses fill the screen and the game expects you to throw the entire arsenal at them." },
-      { t: "Phantasy Star IV", z: "3.4 MB", region: "USA", year: "1993", genre: "Role-playing", dev: "Sega", players: "1", state: null,
-        sha: "a3d9…8b71", art: art("Sega - Mega Drive - Genesis", "Phantasy Star IV (USA)"),
+      { t: "Phantasy Star IV (USA)", short: "Phantasy Star IV", z: "3.4M", size: "3.4 MB", region: "USA", year: "1993", dev: "Sega", genre: "Role-playing", players: "1 player", state: null, pct: 0,
+        hash: "a3d9…8b71", crc: "6c028b", art: art("Sega - Mega Drive - Genesis", "Phantasy Star IV (USA)"),
         syn: "The last of the Algol trilogy: a hunter and a scholar travel a dying solar system to stop a sealed evil from waking. Combination techniques let two characters spend one turn to cast a spell neither could alone." },
-      { t: "Castlevania: Bloodlines", z: "2.2 MB", region: "USA", year: "1994", genre: "Action platformer", dev: "Konami", players: "1", state: "pause",
-        sha: "5e6f…22c4", art: art("Sega - Mega Drive - Genesis", "Castlevania - Bloodlines (USA)"),
+      { t: "Castlevania: Bloodlines (USA)", short: "Castlevania: Bloodlines", z: "2.2M", size: "2.2 MB", region: "USA", year: "1994", dev: "Konami", genre: "Action platformer", players: "1 player", state: "hold", pct: 34,
+        hash: "5e6f…22c4", crc: "b31022", art: art("Sega - Mega Drive - Genesis", "Castlevania - Bloodlines (USA)"),
         syn: "Two hunters — a whip-wielding descendant and a spear-carrying soldier — work through six stages across Europe in 1917. Each has a different route through the game and different sub-weapons." },
-      { t: "Contra: Hard Corps", z: "2.0 MB", region: "USA / Korea", year: "1994", genre: "Run and gun", dev: "Konami", players: "1–2", state: null,
-        sha: "91ab…c0e2", art: art("Sega - Mega Drive - Genesis", "Contra - Hard Corps (USA, Korea)"),
+      { t: "Contra: Hard Corps (USA, Korea)", short: "Contra: Hard Corps", z: "2.0M", size: "2.0 MB", region: "USA / Korea", year: "1994", dev: "Konami", genre: "Run and gun", players: "1–2 players", state: null, pct: 0,
+        hash: "91ab…c0e2", crc: "7d55c0", art: art("Sega - Mega Drive - Genesis", "Contra - Hard Corps (USA, Korea)"),
         syn: "Four commandos, branching stages and a plot that splits on the choices you make mid-mission. Known for being the hardest Contra of its generation, with a hit box that punishes standing still." },
-      { t: "Ristar", z: "2.1 MB", region: "USA / Europe", year: "1995", genre: "Platform", dev: "Sega", players: "1", state: "fail", why: "checksum mismatch",
-        sha: "c4e0…66bd", art: art("Sega - Mega Drive - Genesis", "Ristar (USA, Europe)"),
+      { t: "Ristar (USA, Europe)", short: "Ristar", z: "2.1M", size: "2.1 MB", region: "USA / Europe", year: "1995", dev: "Sega", genre: "Platform", players: "1 player", state: "fail", pct: 61,
+        hash: "c4e0…66bd", crc: "2a1966", art: art("Sega - Mega Drive - Genesis", "Ristar (USA, Europe)"),
         syn: "A star child with elastic arms grabs, swings and punches his way through a solar system whose leaders have been possessed. Movement is built around reaching and holding rather than jumping." },
-      { t: "Comix Zone", z: "2.3 MB", region: "USA", year: "1995", genre: "Beat 'em up", dev: "Sega Technical Institute", players: "1", state: null,
-        sha: "b1f8…7a2d", art: art("Sega - Mega Drive - Genesis", "Comix Zone (USA)"),
+      { t: "Comix Zone (USA)", short: "Comix Zone", z: "2.3M", size: "2.3 MB", region: "USA", year: "1995", dev: "Sega Technical Institute", genre: "Beat 'em up", players: "1 player", state: null, pct: 0,
+        hash: "b1f8…7a2d", crc: "3c407a", art: art("Sega - Mega Drive - Genesis", "Comix Zone (USA)"),
         syn: "A comic artist is pulled into his own pages and has to fight panel to panel. The page is the level: you tear through paper to open routes, and the panel borders are the walls." },
-      { t: "Shining Force II", z: "2.5 MB", region: "USA", year: "1993", genre: "Tactical RPG", dev: "Camelot", players: "1", state: null,
-        sha: "e07a…4c19", art: art("Sega - Mega Drive - Genesis", "Shining Force II (USA)"),
+      { t: "Shining Force II (USA)", short: "Shining Force II", z: "2.5M", size: "2.5 MB", region: "USA", year: "1993", dev: "Camelot", genre: "Tactical RPG", players: "1 player", state: null, pct: 0,
+        hash: "e07a…4c19", crc: "0f4c19", art: art("Sega - Mega Drive - Genesis", "Shining Force II (USA)"),
         syn: "A tactical role-playing game across 30 battles, with a roster of over 20 characters you choose to field. Units promote at level 20 and change class, so the army you finish with is one you built." },
     ],
     gba: [
-      { t: "Metroid Fusion", z: "8.0 MB", region: "USA", year: "2002", genre: "Action adventure", dev: "Nintendo R&D1", players: "1", state: null,
-        sha: "3d21…77aa", art: art("Nintendo - Game Boy Advance", "Metroid Fusion (USA)"),
+      { t: "Metroid Fusion (USA)", short: "Metroid Fusion", z: "8.0M", size: "8.0 MB", region: "USA", year: "2002", dev: "Nintendo R&D1", genre: "Action adventure", players: "1 player", state: null, pct: 0,
+        hash: "3d21…77aa", crc: "aa4177", art: art("Nintendo - Game Boy Advance", "Metroid Fusion (USA)"),
         syn: "Samus is infected by a parasite and rebuilt with a suit that is hostile to the very creatures she used to absorb. The game hands abilities back one at a time and lets a computer voice tell you where to go." },
-      { t: "Advance Wars", z: "4.0 MB", region: "USA", year: "2001", genre: "Turn-based strategy", dev: "Intelligent Systems", players: "1–2", state: "que",
-        sha: "aa41…0c93", art: art("Nintendo - Game Boy Advance", "Advance Wars (USA)"),
+      { t: "Advance Wars (USA)", short: "Advance Wars", z: "4.0M", size: "4.0 MB", region: "USA", year: "2001", dev: "Intelligent Systems", genre: "Turn-based strategy", players: "1–2 players", state: "que", pct: 0,
+        hash: "aa41…0c93", crc: "410c93", art: art("Nintendo - Game Boy Advance", "Advance Wars (USA)"),
         syn: "Grid battles between infantry, tanks and aircraft, where terrain and fuel decide more fights than raw numbers do. One cartridge supports two players passing the console." },
-      { t: "Castlevania: Aria of Sorrow", z: "8.0 MB", region: "USA", year: "2003", genre: "Action adventure", dev: "Konami", players: "1", state: null,
-        sha: "77b2…1e04", art: art("Nintendo - Game Boy Advance", "Castlevania - Aria of Sorrow (USA)"),
+      { t: "Castlevania: Aria of Sorrow (USA)", short: "Aria of Sorrow", z: "8.0M", size: "8.0 MB", region: "USA", year: "2003", dev: "Konami", genre: "Action adventure", players: "1 player", state: null, pct: 0,
+        hash: "77b2…1e04", crc: "b21e04", art: art("Nintendo - Game Boy Advance", "Castlevania - Aria of Sorrow (USA)"),
         syn: "Soma Cruz can absorb the soul of nearly every enemy he kills and use its ability as his own. The castle opens in the order your collection allows, not the order the map suggests." },
     ],
     snes: [
-      { t: "Chrono Trigger", z: "4.0 MB", region: "USA", year: "1995", genre: "Role-playing", dev: "Square", players: "1", state: "done",
-        sha: "9c33…2f18", art: art("Nintendo - Super Nintendo Entertainment System", "Chrono Trigger (USA)"),
+      { t: "Chrono Trigger (USA)", short: "Chrono Trigger", z: "4.0M", size: "4.0 MB", region: "USA", year: "1995", dev: "Square", genre: "Role-playing", players: "1 player", state: "done", pct: 100,
+        hash: "9c33…2f18", crc: "332f18", art: art("Nintendo - Super Nintendo Entertainment System", "Chrono Trigger (USA)"),
         syn: "Seven characters travel across five eras to stop a parasite that destroys the world in 1999. Battles happen on the map with no separate screen, and two or three characters can combine their turns into a single technique." },
-      { t: "Super Metroid", z: "3.0 MB", region: "Japan / USA", year: "1994", genre: "Action adventure", dev: "Nintendo R&D1", players: "1", state: null,
-        sha: "1f0e…88c7", art: art("Nintendo - Super Nintendo Entertainment System", "Super Metroid (Japan, USA) (En,Ja)"),
+      { t: "Super Metroid (Japan, USA)", short: "Super Metroid", z: "3.0M", size: "3.0 MB", region: "Japan / USA", year: "1994", dev: "Nintendo R&D1", genre: "Action adventure", players: "1 player", state: null, pct: 0,
+        hash: "1f0e…88c7", crc: "0e88c7", art: art("Nintendo - Super Nintendo Entertainment System", "Super Metroid (Japan, USA) (En,Ja)"),
         syn: "Samus returns to Zebes to recover a stolen larva, and the planet is the map: every ability you find opens a region you already walked past. There is no dialogue after the opening." },
     ],
   };
 
   const QUEUE = [
-    { t: "Streets of Rage 2", sys: "Genesis", state: "run", pct: 47, bytes: "1.1 / 2.4 MB", speed: "1.2 MB/s · 2 peers" },
-    { t: "Advance Wars", sys: "Game Boy Adv.", state: "run", pct: 12, bytes: "0.5 / 4.0 MB", speed: "680 KB/s" },
-    { t: "Gunstar Heroes", sys: "Genesis", state: "que", pct: 0, bytes: "2.0 MB", speed: "next up" },
-    { t: "Castlevania: Bloodlines", sys: "Genesis", state: "pause", pct: 34, bytes: "0.7 / 2.2 MB", speed: "paused by you" },
-    { t: "Sonic the Hedgehog", sys: "Genesis", state: "done", pct: 100, bytes: "3.1 MB", speed: "verified · SHA-1" },
-    { t: "Ristar", sys: "Genesis", state: "fail", pct: 61, bytes: "1.3 / 2.1 MB", speed: "checksum mismatch · attempt 2 of 3" },
+    { t: "Streets of Rage 2", sys: "GEN", state: "run", pct: 47, bytes: "1.1 / 2.4 MB", note: "1.2 MB/s · 2 peers" },
+    { t: "Advance Wars", sys: "GBA", state: "run", pct: 12, bytes: "0.5 / 4.0 MB", note: "680 KB/s" },
+    { t: "Gunstar Heroes", sys: "GEN", state: "que", pct: 0, bytes: "2.0 MB", note: "next up" },
+    { t: "Castlevania: Bloodlines", sys: "GEN", state: "hold", pct: 34, bytes: "0.7 / 2.2 MB", note: "paused by you" },
+    { t: "Sonic the Hedgehog", sys: "GEN", state: "done", pct: 100, bytes: "3.1 MB", note: "verified · SHA-1" },
+    { t: "Ristar", sys: "GEN", state: "fail", pct: 61, bytes: "1.3 / 2.1 MB", note: "checksum mismatch · attempt 2 of 3" },
   ];
 
-  const ALL_SYSTEMS = SYSTEMS.map((s) => ({ nm: s.id, n: s.count }));
-
-  // ---------- state ----------
   const S = {
-    screen: "browse",
-    system: "genesis",
-    selected: 0,
-    filter: "all",
-    enabled: ["genesis", "gba", "snes"],
-    metadata: true,
-    queuePaused: false,
+    screen: "browse", system: "genesis", selected: 0, filter: "all",
+    enabled: ["genesis", "snes", "gba"], metadata: true, queuePaused: false,
   };
+  const F = { zone: "list", index: 0 };
 
   const STATE_WORD = {
-    run: (g) => g.pct + "%",
-    que: () => "Waiting",
-    pause: () => "Paused",
-    done: () => "On disk",
-    fail: () => "Failed",
+    run: (g) => "downloading " + g.pct + "%",
+    que: () => "waiting",
+    hold: () => "paused",
+    done: () => "on disk",
+    fail: () => "failed",
   };
-  const STATE_CLASS = { run: "is-run", que: "", pause: "is-pause", done: "is-done", fail: "is-fail" };
 
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const games = () => GAMES[S.system] || [];
-  const visible = () => {
+  const enabledSystems = () => SYSTEMS.filter((s) => S.enabled.includes(s.id));
+  const activeCount = () => QUEUE.filter((q) => q.state === "run" || q.state === "que").length;
+
+  function visible() {
     const all = games();
     if (S.filter === "all") return all;
     if (S.filter === "disk") return all.filter((g) => g.state === "done");
-    if (S.filter === "queue") return all.filter((g) => g.state === "run" || g.state === "que" || g.state === "pause");
+    if (S.filter === "queue") return all.filter((g) => ["run", "que", "hold"].includes(g.state));
     if (S.filter === "fail") return all.filter((g) => g.state === "fail");
     return all;
-  };
-
-  // ---------- icons ----------
-  const ICON = {
-    search: '<svg viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></svg>',
-    gear: '<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.4"/><path d="M8 1.4v1.8M8 12.8v1.8M1.4 8h1.8M12.8 8h1.8M3.3 3.3l1.3 1.3M11.4 11.4l1.3 1.3M12.7 3.3l-1.3 1.3M4.6 11.4l-1.3 1.3"/></svg>',
-    queue: '<svg viewBox="0 0 16 16"><path d="M2 4h12M2 8h12M2 12h8"/></svg>',
-    pause: '<svg viewBox="0 0 16 16"><path d="M5.5 3v10M10.5 3v10"/></svg>',
-    play: '<svg viewBox="0 0 16 16"><path d="M5 3l8 5-8 5z"/></svg>',
-    x: '<svg viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8"/></svg>',
-    dl: '<svg viewBox="0 0 16 16"><path d="M8 2v8M4.5 7L8 10.5 11.5 7M2.5 13.5h11"/></svg>',
-  };
+  }
 
   // ---------- render ----------
   function render() {
@@ -533,31 +360,23 @@
   function shell() {
     return `
       <nav class="rail">
-        <div class="rail-h">Systems</div>
         <div class="systems">${railSystems()}</div>
-        <div class="rail-foot">
-          <button class="rail-btn focusable" data-go="queue" data-zone="rail">
-            ${ICON.queue}<span>Queue</span><span class="count">${activeCount()}</span>
-          </button>
-          <button class="rail-btn focusable" data-go="sources" data-zone="rail">
-            ${ICON.gear}<span>Sources</span>
-          </button>
+        <div class="railfoot">
+          <button class="railbtn" data-go="queue" data-zone="rail"><span>queue</span><b>${activeCount()} / ${QUEUE.length}</b></button>
+          <button class="railbtn" data-go="sources" data-zone="rail"><span>sources</span><b>${S.enabled.length}</b></button>
         </div>
       </nav>
-      <div class="main">${S.screen === "queue" ? queueScreen() : S.screen === "sources" ? sourcesScreen() : browseScreen()}</div>
-    `;
+      <div class="main">${S.screen === "queue" ? queueScreen() : S.screen === "sources" ? sourcesScreen() : browseScreen()}</div>`;
   }
 
   function railSystems() {
-    const list = SYSTEMS.filter((s) => S.enabled.includes(s.id));
-    if (!list.length) return `<div class="empty" style="padding:14px 11px;font-size:11px">No systems enabled.</div>`;
+    const list = enabledSystems();
+    if (!list.length) return `<div class="empty" style="padding:12px 10px">no systems enabled</div>`;
     return list.map((s) => `
-      <button class="sys focusable" data-sys="${s.id}" data-zone="rail" aria-current="${s.id === S.system}">
-        <span class="nm">${esc(s.name)}</span><span class="n">${s.count}</span>
+      <button class="sys ${s.id === S.system ? "on" : ""}" data-sys="${s.id}" data-zone="rail">
+        <span>${s.code}</span><span class="n">${s.count}</span>
       </button>`).join("");
   }
-
-  const activeCount = () => QUEUE.filter((q) => q.state === "run" || q.state === "que").length;
 
   function browseScreen() {
     const rows = visible();
@@ -565,98 +384,87 @@
     const counts = {
       all: games().length,
       disk: games().filter((x) => x.state === "done").length,
-      queue: games().filter((x) => ["run", "que", "pause"].includes(x.state)).length,
+      queue: games().filter((x) => ["run", "que", "hold"].includes(x.state)).length,
       fail: games().filter((x) => x.state === "fail").length,
     };
+    const sys = BY_ID[S.system] || { name: S.system, count: 0 };
     return `
-      <div class="head">
-        <div class="search-row">
-          <div class="search">${ICON.search}
-            <input id="q" data-zone="search" type="text" placeholder="Search ${esc(systemName(S.system))}" aria-label="Search titles">
-          </div>
-          <button class="icon-btn" data-go="sources" aria-label="Sources and settings">${ICON.gear}</button>
+      <header class="bar">
+        <div>
+          <h1>${esc(sys.name)}</h1>
+          <div class="meta">${sys.count.toLocaleString("en-US")} titles · 1 source${g ? " · " + esc(g.size) : ""}</div>
         </div>
-        <div class="chips" role="group" aria-label="Filter by download state">
-          ${chip("all", "All", counts.all)}
-          ${chip("disk", "On disk", counts.disk)}
-          ${chip("queue", "In queue", counts.queue)}
-          ${chip("fail", "Failed", counts.fail)}
-          <span class="chip-n">${rows.length} of ${games().length}</span>
-        </div>
+        <input class="q" id="q" data-zone="search" placeholder="search titles ▸ " aria-label="Search titles">
+      </header>
+      <div class="filters">
+        ${fchip("all", "all", counts.all)}
+        ${fchip("disk", "on disk", counts.disk)}
+        ${fchip("queue", "in queue", counts.queue)}
+        ${fchip("fail", "failed", counts.fail)}
+        <span class="fcount">${rows.length} of ${games().length}</span>
       </div>
       <div class="body">
         <div class="list">
-          <div class="cols"><span>Title</span><span>Size</span><span>State</span></div>
+          <div class="cols"><b>Title</b><b>Size</b><b>State</b></div>
           <div class="rows">
             ${rows.length ? rows.map(rowHtml).join("") : `<div class="empty">${games().length
-              ? `Nothing matches <b>${esc(filterName(S.filter))}</b> in this system.`
-              : `<b>${esc(systemName(S.system))}</b> has no listing in this prototype.<br>On the device the list arrives from the source when you open the system.`}</div>`}
+              ? "nothing matches this filter"
+              : esc(sys.name) + " has no listing in this prototype"}</div>`}
           </div>
+          ${g && g.state === "done" ? `<div class="verify"><span>SHA-1 ${esc(g.hash)}</span><span>CRC32 ${esc(g.crc)}</span><b>VERIFIED</b></div>` : ""}
         </div>
-        ${g ? detailHtml(g) : `<aside class="detail"><div class="syn">No title selected.</div></aside>`}
-      </div>
-    `;
+        ${g ? detailHtml(g) : `<aside class="detail"><div class="syn">no title selected</div></aside>`}
+      </div>`;
   }
 
-  const chip = (id, label, n) => `
-    <button class="chip focusable" data-filter="${id}" data-zone="filters" aria-pressed="${S.filter === id}">${label} ${n}</button>`;
+  const fchip = (id, label, n) => `
+    <button class="fchip" data-filter="${id}" data-zone="filters" aria-pressed="${S.filter === id}">${label}<span class="n">${n}</span></button>`;
 
   function rowHtml(g, i) {
     const word = g.state ? STATE_WORD[g.state](g) : "—";
-    const cls = g.state ? STATE_CLASS[g.state] : "";
     return `
-      <button class="row" data-row="${i}" data-zone="list" aria-selected="${i === S.selected}">
+      <button class="row ${i === S.selected ? "on" : ""}" data-row="${i}" data-zone="list">
         <span class="t">${esc(g.t)}</span>
-        <span class="z">${esc(g.z)}</span>
-        <span class="s ${cls}">${esc(word)}</span>
+        <span class="c">${esc(g.z)}</span>
+        <span class="s ${g.state || ""}">${esc(word)}</span>
       </button>`;
   }
 
   function detailHtml(g) {
-    const stateLine = !g.state
-      ? `<b>Not downloaded</b>`
-      : g.state === "run" ? `<b style="color:var(--amber)">Downloading ${g.pct}%</b> · ${esc(g.speed)}`
-      : g.state === "que" ? `<b>Waiting</b> · starts after the current file`
-      : g.state === "pause" ? `<b style="color:#8fb8e8">Paused</b> · ${esc(g.bytes || "")}`
-      : g.state === "done" ? `<b style="color:var(--green)">On disk</b> · verified ${esc(g.sha)}`
-      : `<b style="color:var(--red)">Failed</b> · ${esc(g.why || "see queue")}`;
-
-    const action = !g.state
-      ? `<button class="btn primary focusable" data-zone="detail">${ICON.dl}<span>Download</span><span class="r">${esc(g.z)}</span></button>`
-      : g.state === "run"
-        ? `<button class="btn focusable" data-zone="detail">${ICON.pause}<span>Pause</span><span class="r">${g.pct}%</span></button>`
-      : g.state === "pause"
-        ? `<button class="btn focusable" data-zone="detail">${ICON.play}<span>Resume</span><span class="r">${esc(g.bytes || "")}</span></button>`
-      : g.state === "que"
-        ? `<button class="btn focusable" data-zone="detail">${ICON.pause}<span>Pause</span><span class="r">waiting</span></button>`
-      : g.state === "done"
-        ? `<button class="btn quiet focusable" data-zone="detail">${ICON.dl}<span>Download again</span></button>`
-        : `<button class="btn focusable" data-zone="detail">${ICON.play}<span>Retry</span><span class="r">attempt 2 of 3</span></button>`;
+    const label = !g.state ? "Download" : g.state === "run" || g.state === "que" ? "Pause"
+      : g.state === "hold" ? "Resume" : g.state === "done" ? "Download again" : "Retry";
+    const stateLine = !g.state ? "not downloaded"
+      : g.state === "run" ? `downloading · ${g.pct}%`
+      : g.state === "que" ? "waiting for a slot"
+      : g.state === "hold" ? `paused · ${g.pct}%`
+      : g.state === "done" ? "on disk · verified"
+      : "failed · checksum mismatch";
 
     return `
       <aside class="detail">
-        <div class="poster-row">
-          <div class="poster" id="poster">
-            <div class="ph">Box art<br>not loaded</div>
-          </div>
+        <div class="ident">
+          <div class="poster" id="poster"><div class="ph">no art</div></div>
           <div>
-            <h2 class="dtitle">${esc(g.t)}</h2>
-            <div class="dmeta">
-              <b>${esc(g.year)}</b> · ${esc(g.genre)}<br>
-              ${esc(g.dev)}<br>
-              ${esc(g.players)} player${g.players === "1" ? "" : "s"} · ${esc(g.region)}
-            </div>
+            <div class="kick">${esc(BY_ID[S.system].code)} · ${esc(g.year)} · ${esc(g.dev)}</div>
+            <h2>${esc(g.t)}</h2>
+            <div class="sub">${esc(g.genre)} · ${esc(g.players)}</div>
           </div>
         </div>
         <div class="rule"></div>
+        <div class="kv"><i>size</i><u></u><b>${esc(g.size)}</b></div>
+        <div class="kv"><i>region</i><u></u><b>${esc(g.region)}</b></div>
+        <div class="kv"><i>hash</i><u></u><b>${esc(g.hash)}</b></div>
+        <div class="kv"><i>path</i><u></u><b>/ROMs/${esc(S.system)}/</b></div>
+        <div class="rule"></div>
         <p class="syn">${esc(g.syn)}</p>
         <div class="acts">
-          <div class="dmeta">${stateLine}</div>
-          ${action}
+          <div class="meta" style="margin:0 0 7px">${esc(stateLine)}</div>
+          <button class="btn ${!g.state ? "primary" : ""}" data-zone="detail" data-act="primary">${label}</button>
         </div>
       </aside>`;
   }
 
+  // art: selected title only, debounced, cached, frame follows the art's ratio
   const artCache = new Map();
   let artTimer = null;
 
@@ -665,8 +473,8 @@
     if (!g || !g.art) return;
     const box = document.getElementById("poster");
     if (!box) return;
-    const cached = artCache.get(g.art);
-    if (cached) { placeArt(box, cached); return; }
+    const hit = artCache.get(g.art);
+    if (hit) { placeArt(box, hit); return; }
     clearTimeout(artTimer);
     artTimer = setTimeout(() => loadArt(box, g.art), 110);
   }
@@ -682,14 +490,9 @@
     img.src = url;
   }
 
-  /**
-   * The frame takes the art's ratio. Covers run from tall Japanese boxes
-   * (~0.6) through square to wide for odd scans; one fixed frame letterboxed
-   * every one of those into dead space.
-   */
   function placeArt(box, img) {
     const ar = img.naturalWidth / img.naturalHeight;
-    const MAX_H = 160, MAX_W = 210;
+    const MAX_H = 110, MAX_W = 140;
     let h = MAX_H, w = Math.round(h * ar);
     if (w > MAX_W) { w = MAX_W; h = Math.round(w / ar); }
     box.style.width = w + "px";
@@ -704,92 +507,86 @@
     const run = QUEUE.filter((q) => q.state === "run").length;
     const wait = QUEUE.filter((q) => q.state === "que").length;
     return `
-      <div class="qhead">
-        <h2>Queue</h2>
-        <span class="sum">${run} downloading · ${wait} waiting · 41.2 GB free</span>
-        <div class="sp">
-          <button class="qbtn focusable" data-queue="${S.queuePaused ? "resume" : "pause"}" data-zone="qhead">
-            ${S.queuePaused ? ICON.play : ICON.pause}<span>${S.queuePaused ? "Resume all" : "Pause all"}</span>
-          </button>
-          <button class="qbtn focusable" data-queue="clear" data-zone="qhead">${ICON.x}<span>Clear finished</span></button>
+      <header class="bar">
+        <div>
+          <h1>Queue</h1>
+          <div class="meta">${run} downloading · ${wait} waiting · 41.2 GB free</div>
         </div>
-      </div>
-      <div class="qlist">${QUEUE.map((q, i) => queueRow(q, i)).join("")}</div>`;
+      </header>
+      <div class="queue">
+        <div class="qsum">
+          <span>state · bytes</span>
+          <span class="sp">
+            <button class="qbtn" data-zone="qhead" data-queue="${S.queuePaused ? "resume" : "pause"}">${S.queuePaused ? "resume all" : "pause all"}</button>
+            <button class="qbtn" data-zone="qhead" data-queue="clear">clear finished</button>
+          </span>
+        </div>
+        <div class="qlist">${QUEUE.map(queueRow).join("")}</div>
+      </div>`;
   }
 
   function queueRow(q, i) {
     const cells = 10;
     const filled = Math.round((q.pct / 100) * cells);
-    const cls = q.state === "done" ? "dn" : q.state === "pause" ? "pz" : q.state === "fail" ? "pk" : "on";
-    const bars = Array.from({ length: cells }, (_, i) => `<i class="${i < filled ? cls : ""}"></i>`).join("");
-    const word = { run: "Downloading", que: "Waiting", pause: "Paused", done: "On disk", fail: "Failed" }[q.state];
-    const colour = { run: "var(--amber)", que: "var(--dim)", pause: "#8fb8e8", done: "var(--green)", fail: "var(--red)" }[q.state];
+    const bars = Array.from({ length: cells }, (_, k) => (k < filled ? "▮" : "▯")).join("");
+    const word = { run: "downloading", que: "waiting", hold: "paused", done: "on disk", fail: "failed" }[q.state];
+    const cls = { run: "st-run", que: "st-que", hold: "st-hold", done: "st-done", fail: "st-fail" }[q.state];
     const canPause = q.state === "run" || q.state === "que";
-    const canResume = q.state === "pause" || q.state === "fail";
+    const canResume = q.state === "hold" || q.state === "fail";
     return `
       <div class="qrow" data-qrow="${i}" data-zone="qlist">
-        <div>
-          <div class="qt">${esc(q.t)}</div>
-          <div class="qm">${esc(q.sys)} · ${esc(q.speed)}</div>
-        </div>
-        <div class="qbar" aria-hidden="true">${bars}</div>
-        <div class="qbytes">${esc(q.bytes)}</div>
-        <div class="qstate" style="color:${colour}">${word}</div>
-        <div class="qact">
-          ${canPause ? `<button title="Pause ${esc(q.t)}">${ICON.pause}</button>` : ""}
-          ${canResume ? `<button title="Resume ${esc(q.t)}">${ICON.play}</button>` : ""}
-          <button class="kill" title="Remove ${esc(q.t)} from the queue">${ICON.x}</button>
+        <div class="t">${esc(q.t)}<small>${esc(q.sys)} · ${esc(q.note)}</small></div>
+        <div class="bar10"><b>${bars.slice(0, filled)}</b><s>${bars.slice(filled)}</s><i>${q.pct}%</i></div>
+        <div class="b">${esc(q.bytes)}</div>
+        <div class="s ${cls}">${word}</div>
+        <div class="qacts">
+          ${canPause ? `<button data-qact="pause" data-qi="${i}">pause</button>` : ""}
+          ${canResume ? `<button data-qact="resume" data-qi="${i}">resume</button>` : ""}
+          <button class="kill" data-qact="kill" data-qi="${i}">✕</button>
         </div>
       </div>`;
   }
 
   function sourcesScreen() {
     return `
+      <header class="bar">
+        <div>
+          <h1>Sources</h1>
+          <div class="meta">2 sources · 14 systems offered</div>
+        </div>
+      </header>
       <div class="sheet">
         <div>
-          <h2>Repository</h2>
-          <div class="field" style="margin-top:6px">
+          <h3>repository</h3>
+          <div class="frow">
             <input type="text" data-zone="field" value="https://example.net/caddy/index.json" aria-label="Repository URL">
-            <button class="qbtn focusable" data-zone="field">Refresh</button>
-            <button class="qbtn focusable" data-zone="field">Remove</button>
+            <button class="qbtn" data-zone="field">refresh</button>
+            <button class="qbtn" data-zone="field">remove</button>
           </div>
-          <div class="hint" style="margin-top:5px">2 sources · 14 systems offered</div>
         </div>
-
         <div>
-          <h2>Systems in the app — ${S.enabled.length} of ${ALL_SYSTEMS.length}</h2>
-          <div class="sysgrid" style="margin-top:6px">
-            ${ALL_SYSTEMS.map((s) => `
-              <button class="syscell focusable" data-toggle-sys="${s.nm}" data-zone="grid" aria-pressed="${S.enabled.includes(s.nm)}">
-                <span class="box"></span><span class="nm">${esc(s.nm)}</span><span class="n">${s.n}</span>
+          <h3>systems in the app — ${S.enabled.length} of ${SYSTEMS.length}</h3>
+          <div class="grid">
+            ${SYSTEMS.map((s) => `
+              <button class="cell" data-toggle-sys="${s.id}" data-zone="grid" aria-pressed="${S.enabled.includes(s.id)}">
+                <span class="box"></span><span class="nm">${s.code.toLowerCase()}</span><span class="n">${s.count}</span>
               </button>`).join("")}
           </div>
-          <div class="hint" style="margin-top:5px">Only checked systems are listed and fetched. Unchecked ones cost nothing.</div>
+          <div class="hint" style="margin-top:5px">only checked systems are listed and fetched</div>
         </div>
-
         <div>
-          <h2>Metadata</h2>
-          <div style="display:flex;flex-direction:column;gap:7px;margin-top:6px">
-            <button class="toggle focusable" data-toggle-meta data-zone="meta" aria-pressed="${S.metadata}">
-              <span class="sw"></span>
-              <span class="txt">Fetch box art and descriptions for the selected title</span>
-            </button>
-            <div class="field">
-              <label>Provider</label>
-              <input type="text" value="libretro (art) · ScreenScraper (text)" readonly aria-label="Metadata provider">
-              <button class="qbtn">Sign in</button>
-            </div>
-          </div>
+          <h3>metadata</h3>
+          <button class="tog" data-toggle-meta data-zone="meta" aria-pressed="${S.metadata}">
+            <span class="sw"></span><span class="txt">fetch box art and descriptions for the selected title</span>
+          </button>
         </div>
-
-        <div class="field">
-          <label>ROMs root</label>
+        <div class="frow">
+          <label>roms root</label>
           <input type="text" data-zone="field" value="/storage/emulated/0/ROMs" aria-label="ROMs root">
         </div>
-
-        <div class="foot-note">
-          ScreenScraper needs a free account for its quota; without one the app still shows art from libretro and
-          the No-Intro title, region and size it already has.
+        <div class="footnote">
+          screenscraper needs a free account for its quota. without one the app still shows libretro art
+          plus the title, region and size it already has.
         </div>
       </div>`;
   }
@@ -797,113 +594,43 @@
   function firstRun() {
     return `
       <div class="firstrun">
-        <div class="fr-inner">
-          <h2>Add a repository</h2>
+        <div class="fr">
+          <h2>add a repository</h2>
           <p>
-            Caddy ships no sources. A repository is a JSON index you host or borrow; it says which systems it
-            covers and how to fetch them. You choose which of those systems appear in the app.
+            caddy ships no sources. a repository is a json index you host or borrow; it says which systems
+            it covers and how to fetch them. you choose which of those systems appear in the app.
           </p>
-          <div class="fr-row">
-            <input type="text" placeholder="https://…/index.json" aria-label="Repository URL">
-            <button class="qbtn">Add</button>
+          <div class="frrow">
+            <input type="text" data-zone="center" placeholder="https://…/index.json" aria-label="Repository URL">
+            <button class="qbtn" data-zone="center">add</button>
           </div>
-          <div class="fr-actions">
-            <button class="qbtn">Paste JSON instead</button>
-            <button class="qbtn">Add from LAN address</button>
+          <div class="frbtns">
+            <button class="qbtn" data-zone="center">paste json instead</button>
+            <button class="qbtn" data-zone="center">add from lan address</button>
           </div>
-          <p style="margin-top:16px;font-size:11px;color:#7f857f">
-            Nothing is fetched until you add a repository, and no source is bundled with this build.
+          <p style="margin-top:16px;font-size:11px;color:#5c615b">
+            nothing is fetched until you add a repository, and no source is bundled with this build.
           </p>
         </div>
       </div>`;
   }
 
-  const systemName = (id) => SYSTEM_NAME[id] || id;
-  const filterName = (f) => ({ all: "All", disk: "On disk", queue: "In queue", fail: "Failed" }[f]);
-
-  // ---------- interaction ----------
-  document.addEventListener("click", (e) => {
-    const t = e.target.closest("button, .chip");
-    if (!t) return;
-
-    if (t.dataset.screen) {
-      document.querySelectorAll(".tab").forEach((b) => b.setAttribute("aria-selected", String(b === t)));
-      S.screen = t.dataset.screen;
-      render();
-      enterZone(S.screen === "queue" ? "qlist" : S.screen === "sources" ? "grid" : "list", 0);
-      return;
-    }
-    if (t.dataset.sys) {
-      S.system = t.dataset.sys; S.selected = 0; S.filter = "all";
-      S.screen = "browse"; syncTabs(); render(); return;
-    }
-    if (t.dataset.go) {
-      S.screen = t.dataset.go; syncTabs(); render();
-      enterZone(S.screen === "queue" ? "qlist" : "grid", 0);
-      return;
-    }
-    if (t.dataset.filter) {
-      S.filter = t.dataset.filter; S.selected = 0; render();
-      enterZone("filters", F.zone === "filters" ? F.index : 0);
-      return;
-    }
-    if (t.dataset.row !== undefined) {
-      S.selected = Number(t.dataset.row); render();
-      enterZone("list", S.selected);
-      return;
-    }
-    if (t.dataset.queue) {
-      if (t.dataset.queue === "pause") S.queuePaused = true;
-      if (t.dataset.queue === "resume") S.queuePaused = false;
-      if (t.dataset.queue === "clear") {
-        for (let i = QUEUE.length - 1; i >= 0; i--) if (QUEUE[i].state === "done" || QUEUE[i].state === "fail") QUEUE.splice(i, 1);
-      }
-      render();
-      return;
-    }
-    if (t.dataset.toggleSys) {
-      const id = t.dataset.toggleSys;
-      S.enabled = S.enabled.includes(id) ? S.enabled.filter((x) => x !== id) : [...S.enabled, id];
-      if (!S.enabled.includes(S.system) && S.enabled.length) { S.system = S.enabled[0]; S.selected = 0; }
-      render();
-      return;
-    }
-    if (t.hasAttribute("data-toggle-meta")) { S.metadata = !S.metadata; render(); return; }
-  });
-
-  function syncTabs() {
-    document.querySelectorAll(".tab").forEach((b) =>
-      b.setAttribute("aria-selected", String(b.dataset.screen === S.screen)));
-  }
-
-  // ---------------------------------------------------------------
-  // Gamepad. The D-pad is the primary input on this device, so every
-  // control is reachable without touching the screen. The spatial model
-  // is the same everywhere: up/down walks a column, left walks back
-  // toward the rail, right walks toward the detail pane.
-  // ---------------------------------------------------------------
+  // ---------- gamepad ----------
   const ZONES = {
     browse: ["rail", "search", "filters", "list", "detail"],
     queue: ["rail", "qhead", "qlist"],
     sources: ["rail", "field", "grid", "meta"],
     firstrun: ["center"],
   };
-  const F = { zone: "list", index: 0 };
 
   function zoneEls(zone) {
-    if (zone === "center") return [...document.querySelectorAll(".firstrun .qbtn")];
     return [...document.querySelectorAll(`[data-zone="${zone}"]`)].filter((el) => el.offsetParent !== null);
   }
 
   function applyFocus() {
     document.querySelectorAll(".is-focused").forEach((el) => el.classList.remove("is-focused"));
     let els = zoneEls(F.zone);
-    // An empty system has no rows to sit on, so the cursor parks in the rail
-    // rather than vanishing with no visible focus anywhere.
-    if (!els.length && F.zone !== "rail") {
-      F.zone = "rail"; F.index = 0;
-      els = zoneEls("rail");
-    }
+    if (!els.length && F.zone !== "rail") { F.zone = "rail"; F.index = 0; els = zoneEls("rail"); }
     if (!els.length) return;
     F.index = Math.max(0, Math.min(els.length - 1, F.index));
     const el = els[F.index];
@@ -920,7 +647,6 @@
 
   function moveFocus(dir) {
     const order = ZONES[S.screen] || ZONES.browse;
-    const at = order.indexOf(F.zone);
     const step = (d) => {
       const n = zoneEls(F.zone).length;
       if (!n) return false;
@@ -936,16 +662,6 @@
       if (left) return false;
       if (right) return go(order[1] === "search" ? "filters" : order[1]);
       return step(dir === "ArrowDown" ? 1 : -1);
-    }
-    if (F.zone === "grid") {
-      const cols = 4, n = zoneEls("grid").length;
-      if (left) return step(-1) || go("field");
-      if (right) return step(1);
-      if (dir === "ArrowUp") return F.index - cols >= 0 ? (F.index -= cols, true) : go("field");
-      // Past the last row the grid hands the cursor down to the metadata
-      // toggle, so every control on this screen is reachable with the D-pad.
-      if (dir === "ArrowDown") return F.index + cols < n ? (F.index += cols, true) : go("meta");
-      return false;
     }
     if (F.zone === "list") {
       if (left) return go("rail");
@@ -963,9 +679,7 @@
       if (dir === "ArrowUp") return go("search");
       return go("list");
     }
-    if (F.zone === "search") {
-      return dir === "ArrowDown" ? go("filters") : false;
-    }
+    if (F.zone === "search") return dir === "ArrowDown" ? go("filters") : false;
     if (F.zone === "qlist") {
       if (left) return go("rail");
       return step(dir === "ArrowDown" ? 1 : -1) || (dir === "ArrowUp" ? go("qhead") : false);
@@ -974,6 +688,14 @@
       if (left) return step(-1) || go("rail");
       if (right) return step(1);
       return dir === "ArrowDown" ? go("qlist") : false;
+    }
+    if (F.zone === "grid") {
+      const cols = 4, n = zoneEls("grid").length;
+      if (left) return step(-1) || go("field");
+      if (right) return step(1);
+      if (dir === "ArrowUp") return F.index - cols >= 0 ? (F.index -= cols, true) : go("field");
+      if (dir === "ArrowDown") return F.index + cols < n ? (F.index += cols, true) : go("meta");
+      return false;
     }
     if (F.zone === "field" || F.zone === "meta") {
       if (left) return go("rail");
@@ -989,9 +711,73 @@
   }
 
   function enterZone(zone, index) {
-    F.zone = zone;
-    F.index = index || 0;
-    applyFocus();
+    F.zone = zone; F.index = index || 0; applyFocus();
+  }
+
+  // ---------- events ----------
+  document.addEventListener("click", (e) => {
+    const t = e.target.closest("button");
+    if (!t) return;
+
+    if (t.dataset.screen) {
+      document.querySelectorAll(".tab").forEach((b) => b.setAttribute("aria-selected", String(b === t)));
+      S.screen = t.dataset.screen; render();
+      enterZone(S.screen === "queue" ? "qlist" : S.screen === "sources" ? "grid" : S.screen === "firstrun" ? "center" : "list", 0);
+      return;
+    }
+    if (t.dataset.sys) {
+      S.system = t.dataset.sys; S.selected = 0; S.filter = "all"; S.screen = "browse";
+      syncTabs(); render(); enterZone("list", 0); return;
+    }
+    if (t.dataset.go) {
+      S.screen = t.dataset.go; syncTabs(); render();
+      enterZone(S.screen === "queue" ? "qlist" : "grid", 0); return;
+    }
+    if (t.dataset.filter) {
+      S.filter = t.dataset.filter; S.selected = 0; render();
+      enterZone("filters", F.zone === "filters" ? F.index : 0); return;
+    }
+    if (t.dataset.row !== undefined) {
+      S.selected = Number(t.dataset.row); render(); enterZone("list", S.selected); return;
+    }
+    if (t.dataset.qact) {
+      const i = Number(t.dataset.qi);
+      if (t.dataset.qact === "kill") QUEUE.splice(i, 1);
+      else if (t.dataset.qact === "pause") QUEUE[i].state = "hold";
+      else QUEUE[i].state = "run";
+      render(); enterZone("qlist", Math.min(i, QUEUE.length - 1)); return;
+    }
+    if (t.dataset.queue) {
+      if (t.dataset.queue === "pause") S.queuePaused = true;
+      if (t.dataset.queue === "resume") S.queuePaused = false;
+      if (t.dataset.queue === "clear") {
+        for (let i = QUEUE.length - 1; i >= 0; i--) if (QUEUE[i].state === "done" || QUEUE[i].state === "fail") QUEUE.splice(i, 1);
+      }
+      render(); enterZone("qhead", F.zone === "qhead" ? F.index : 0); return;
+    }
+    if (t.dataset.toggleSys) {
+      const id = t.dataset.toggleSys;
+      S.enabled = S.enabled.includes(id) ? S.enabled.filter((x) => x !== id) : [...S.enabled, id];
+      if (!S.enabled.includes(S.system) && S.enabled.length) { S.system = S.enabled[0]; S.selected = 0; }
+      render(); enterZone("grid", F.zone === "grid" ? F.index : 0); return;
+    }
+    if (t.hasAttribute("data-toggle-meta")) {
+      S.metadata = !S.metadata; render(); enterZone("meta", 0); return;
+    }
+    if (t.dataset.act === "primary") {
+      const g = visible()[S.selected];
+      if (g) {
+        if (!g.state) { g.state = "que"; g.pct = 0; }
+        else if (g.state === "run" || g.state === "que") g.state = "hold";
+        else if (g.state === "hold" || g.state === "fail") g.state = "run";
+      }
+      render(); enterZone("detail", 0); return;
+    }
+  });
+
+  function syncTabs() {
+    document.querySelectorAll(".tab").forEach((b) =>
+      b.setAttribute("aria-selected", String(b.dataset.screen === S.screen)));
   }
 
   document.addEventListener("keydown", (e) => {
@@ -1000,7 +786,7 @@
     if (typing) {
       if (e.key === "ArrowDown" || e.key === "Enter") {
         e.preventDefault(); e.target.blur();
-        F.zone = "search"; F.index = 0;
+        F.zone = S.screen === "sources" ? "field" : "search"; F.index = 0;
         if (moveFocus("ArrowDown")) render();
       } else if (e.key === "Escape") {
         e.preventDefault(); e.target.blur(); render();
@@ -1008,7 +794,7 @@
       return;
     }
 
-    if (e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "ArrowUp" || e.key === "ArrowDown") {
+    if (e.key.startsWith("Arrow")) {
       e.preventDefault();
       if (moveFocus(e.key)) render();
       return;
@@ -1022,9 +808,9 @@
       if (el.dataset.qrow !== undefined) {
         const q = QUEUE[Number(el.dataset.qrow)];
         if (!q) return;
-        q.state = (q.state === "pause" || q.state === "fail") ? "run" : q.state === "done" ? "done" : "pause";
-        render();
-        return;
+        if (q.state === "hold" || q.state === "fail") q.state = "run";
+        else if (q.state !== "done") q.state = "hold";
+        render(); return;
       }
       el.click();
       return;
@@ -1032,12 +818,9 @@
 
     if (e.key === "Backspace" || e.key === "Escape") {
       e.preventDefault();
-      if (S.screen !== "browse") {
-        S.screen = "browse"; syncTabs(); render(); enterZone("list", S.selected);
-      }
+      if (S.screen !== "browse") { S.screen = "browse"; syncTabs(); render(); enterZone("list", S.selected); }
       return;
     }
-
     if (e.key === "x" || e.key === "X") {
       e.preventDefault();
       if (S.screen !== "queue") { S.screen = "queue"; syncTabs(); render(); enterZone("qlist", 0); }
@@ -1054,11 +837,9 @@
     }
   });
 
-  // fit to viewport without upscaling
   function fit() {
     const w = document.querySelector(".wrap").clientWidth;
-    const s = Math.min(1, w / 834);
-    document.querySelector(".scale").style.setProperty("--s", s);
+    document.querySelector(".scale").style.setProperty("--s", Math.min(1, w / 834));
   }
   window.addEventListener("resize", fit);
   fit();
