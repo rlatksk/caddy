@@ -121,10 +121,22 @@ class DownloadQueue(context: Context) {
         writable().execSQL("UPDATE downloads SET attempts = attempts + 1 WHERE id = ?", arrayOf(id))
     }
 
-    /** Anything left RUNNING belongs to a process that died; put it back in line. */
-    fun requeueInterrupted(): Int =
-        writable().update("downloads", ContentValues().apply { put("state", STATE_QUEUED) },
-            "state = ?", arrayOf(STATE_RUNNING))
+    /**
+     * Anything still RUNNING at service start belongs to a process that died, so
+     * it goes back in line. Rows this process is actively downloading are
+     * excluded: requeueing a live row would start a second writer on the same
+     * `.part` file.
+     */
+    fun requeueInterrupted(active: Set<Long> = emptySet()): Int {
+        val clause = if (active.isEmpty()) "state = ?" else
+            "state = ? AND id NOT IN (${active.joinToString(",")})"
+        return writable().update(
+            "downloads",
+            ContentValues().apply { put("state", STATE_QUEUED) },
+            clause,
+            arrayOf(STATE_RUNNING),
+        )
+    }
 
     fun remove(id: Long) {
         writable().delete("downloads", "id = ?", arrayOf(id.toString()))

@@ -45,6 +45,8 @@ class DownloadService : Service() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val permits = Semaphore(MAX_PARALLEL)
     private val active = AtomicInteger(0)
+    private val activeIds = java.util.concurrent.ConcurrentHashMap.newKeySet<Long>()
+    private val pumping = java.util.concurrent.atomic.AtomicBoolean(false)
 
     private lateinit var queue: DownloadQueue
     private lateinit var store: RepoStore
@@ -66,17 +68,35 @@ class DownloadService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         startForeground(NOTIFICATION_ID, buildNotification("Starting…", 0, 0))
-        // A previous process died mid-download; those rows are RUNNING with no owner.
-        queue.requeueInterrupted()
-        scope.launch { pump() }
+        // A previous process died mid-download; those rows are RUNNING with no
+        // owner. Live rows are spared, and a second start must not spawn a
+        // second pump over the same rows.
+        queue.requeueInterrupted(activeIds.toSet())
+        if (pumping.compareAndSet(false, true)) {
+            android.util.Log.i("caddy", "service start, pumping")
+            scope.launch { pump() }
+        } else {
+            android.util.Log.i("caddy", "service start, already pumping")
+        }
         return START_STICKY
     }
 
     private suspend fun pump() {
         while (true) {
             val batch = withContext(Dispatchers.IO) { queue.next(MAX_PARALLEL) }
+            android.util.Log.i("caddy", "pump batch=${batch.map { it.id }}")
             if (batch.isEmpty()) break
+            // Claim the rows before launching. Otherwise the coroutines below
+            // have not incremented `active` yet when this loop asks for more
+            // work, and `next()` hands back the same QUEUED rows.
+            withContext(Dispatchers.IO) {
+                batch.forEach { queue.updateState(it.id, DownloadQueue.STATE_RUNNING) }
+            }
             batch.forEach { row ->
+                // Counted here, not inside the coroutine: `run` must be assumed
+                // live the moment it is scheduled, or the wait below passes
+                // instantly and the service stops with a download in flight.
+                active.incrementAndGet()
                 scope.launch {
                     permits.withPermit { run(row) }
                 }
@@ -85,11 +105,13 @@ class DownloadService : Service() {
             // out the same rows twice.
             while (active.get() > 0) kotlinx.coroutines.delay(200)
         }
+        pumping.set(false)
         stopSelf()
     }
 
     private suspend fun run(row: DownloadQueue.Row) {
-        active.incrementAndGet()
+        activeIds += row.id
+        android.util.Log.i("caddy", "run start #${row.id} ${row.filename} active=${active.get()}")
         withContext(Dispatchers.IO) { queue.updateState(row.id, DownloadQueue.STATE_RUNNING) }
         try {
             val plan = withContext(Dispatchers.IO) { resolve(row) }
@@ -125,6 +147,7 @@ class DownloadService : Service() {
                     throw SourceUnavailable("browser capture required: ${resolved.pageUrl}", retryable = false)
             }
         } catch (error: Exception) {
+            android.util.Log.w("caddy", "run failed #${row.id}: ${error.message}", error)
             val retryable = (error as? SourceUnavailable)?.retryable ?: true
             withContext(Dispatchers.IO) {
                 queue.bumpAttempts(row.id)
@@ -138,7 +161,9 @@ class DownloadService : Service() {
                 }
             }
         } finally {
+            activeIds -= row.id
             active.decrementAndGet()
+            android.util.Log.i("caddy", "run end #${row.id} active=${active.get()}")
         }
     }
 
