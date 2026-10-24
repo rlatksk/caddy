@@ -19,8 +19,8 @@ import caddy.KIND_BASE
  * download time.
  */
 typealias DownloadQueueEntry = DownloadQueue.Row
+typealias DownloadQueueRow = DownloadQueue.Row
 class DownloadQueue(context: Context) {
-
     data class Row(
         val id: Long,
         val system: String,
