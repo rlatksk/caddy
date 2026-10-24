@@ -23,7 +23,7 @@ class QueuePane(context: Context) : LinearLayout(context) {
     private val summaryView: TextView
     private val resumeButton: TextView
     private val clearButton: TextView
-
+    private val filesButton: TextView
     // List
     private val recyclerView: RecyclerView
     private val queueAdapter: QueueAdapter
@@ -36,8 +36,8 @@ class QueuePane(context: Context) : LinearLayout(context) {
     // Callbacks
     var onResumeQueue: (() -> Unit)? = null
     var onClearFinished: (() -> Unit)? = null
+    var onOpenFiles: (() -> Unit)? = null
     var onItemAction: ((item: DownloadQueueEntry) -> Unit)? = null
-
     init {
         orientation = VERTICAL
         layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
@@ -97,6 +97,12 @@ class QueuePane(context: Context) : LinearLayout(context) {
         clearButton.setOnClickListener { onClearFinished?.invoke() }
         actionsBox.addView(clearButton)
 
+        filesButton = createHeaderButton("[OPEN FILES]")
+        val filesLp = filesButton.layoutParams as LayoutParams
+        filesLp.leftMargin = CaddyTheme.dp(context, 8f)
+        filesButton.layoutParams = filesLp
+        filesButton.setOnClickListener { onOpenFiles?.invoke() }
+        actionsBox.addView(filesButton)
         headerBar.addView(actionsBox)
         addView(headerBar)
 
@@ -163,12 +169,19 @@ class QueuePane(context: Context) : LinearLayout(context) {
 
     fun triggerAction(): Boolean {
         if (currentFocus.zone == Zone.QHEAD) {
-            if (currentFocus.index == 0) {
-                onResumeQueue?.invoke()
-                return true
-            } else if (currentFocus.index == 1) {
-                onClearFinished?.invoke()
-                return true
+            when (currentFocus.index) {
+                0 -> {
+                    onResumeQueue?.invoke()
+                    return true
+                }
+                1 -> {
+                    onClearFinished?.invoke()
+                    return true
+                }
+                2 -> {
+                    onOpenFiles?.invoke()
+                    return true
+                }
             }
         } else if (currentFocus.zone == Zone.QLIST) {
             val item = items.getOrNull(currentFocus.index)
@@ -194,18 +207,10 @@ class QueuePane(context: Context) : LinearLayout(context) {
     }
 
     private fun renderHeaderFocus() {
-        if (currentFocus.zone == Zone.QHEAD) {
-            if (currentFocus.index == 0) {
-                setButtonFocused(resumeButton, true)
-                setButtonFocused(clearButton, false)
-            } else {
-                setButtonFocused(resumeButton, false)
-                setButtonFocused(clearButton, true)
-            }
-        } else {
-            setButtonFocused(resumeButton, false)
-            setButtonFocused(clearButton, false)
-        }
+        val isQHead = currentFocus.zone == Zone.QHEAD
+        setButtonFocused(resumeButton, isQHead && currentFocus.index == 0)
+        setButtonFocused(clearButton, isQHead && currentFocus.index == 1)
+        setButtonFocused(filesButton, isQHead && currentFocus.index == 2)
     }
 
     private fun setButtonFocused(view: TextView, focused: Boolean) {

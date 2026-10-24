@@ -101,8 +101,8 @@ class DpadNavigator {
             }
             Zone.QHEAD -> when (dir) {
                 Direction.DOWN -> FocusTarget(Zone.QLIST, 0)
-                Direction.LEFT -> if (focus.index == 0) FocusTarget(Zone.RAIL, railCount) else FocusTarget(Zone.QHEAD, 0)
-                Direction.RIGHT -> if (focus.index < 1) FocusTarget(Zone.QHEAD, 1) else FocusTarget(Zone.RAIL, railCount + 1)
+                Direction.LEFT -> if (focus.index == 0) FocusTarget(Zone.RAIL, railCount) else FocusTarget(Zone.QHEAD, focus.index - 1)
+                Direction.RIGHT -> if (focus.index < 2) FocusTarget(Zone.QHEAD, focus.index + 1) else FocusTarget(Zone.RAIL, railCount + 1)
                 else -> focus
             }
             Zone.QLIST -> when (dir) {

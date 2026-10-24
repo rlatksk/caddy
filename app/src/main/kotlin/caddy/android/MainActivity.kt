@@ -175,6 +175,9 @@ class MainActivity : AppCompatActivity() {
                     .forEach { queue.remove(it.id) }
                 refreshQueueState()
             }
+            onOpenFiles = {
+                openFilesApp(store.romsRoot)
+            }
             onItemAction = { item ->
                 when (item.state) {
                     DownloadQueue.STATE_RUNNING, DownloadQueue.STATE_QUEUED -> {
@@ -508,6 +511,40 @@ class MainActivity : AppCompatActivity() {
         } else {
             val base = "/storage/$volume"
             if (subPath.isNotEmpty()) "$base/$subPath" else base
+        }
+    }
+
+    private fun openFilesApp(romsDir: String) {
+        val path = if (romsDir.isNotBlank()) romsDir else "/storage/emulated/0/ROMs"
+        val docId = if (path.startsWith("/storage/emulated/0")) {
+            val sub = path.removePrefix("/storage/emulated/0").trimStart('/')
+            "primary:$sub"
+        } else if (path.startsWith("/sdcard")) {
+            val sub = path.removePrefix("/sdcard").trimStart('/')
+            "primary:$sub"
+        } else if (path.startsWith("/storage/")) {
+            val parts = path.removePrefix("/storage/").split('/', limit = 2)
+            val vol = parts.getOrNull(0) ?: "primary"
+            val sub = parts.getOrNull(1) ?: ""
+            "$vol:$sub"
+        } else {
+            "primary:ROMs"
+        }
+
+        val uri = Uri.parse("content://com.android.externalstorage.documents/document/" + Uri.encode(docId))
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(uri, "vnd.android.document/directory")
+            setPackage("com.android.documentsui")
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+
+        val fallbackIntent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(uri, "*/*")
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+
+        runCatching { startActivity(intent) }.onFailure {
+            runCatching { startActivity(fallbackIntent) }
         }
     }
 

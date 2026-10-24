@@ -22,9 +22,19 @@ class PaneNavigationTest {
         assertEquals(FocusTarget(Zone.QHEAD, 0), headTarget)
 
         // QHEAD index 0 -> index 1 on RIGHT
-        val headRight = nav.move(Direction.RIGHT, listCount = 3)
-        assertEquals(FocusTarget(Zone.QHEAD, 1), headRight)
+        val headRight1 = nav.move(Direction.RIGHT, listCount = 3)
+        assertEquals(FocusTarget(Zone.QHEAD, 1), headRight1)
 
+        // QHEAD index 1 -> index 2 ([OPEN FILES]) on RIGHT
+        val headRight2 = nav.move(Direction.RIGHT, listCount = 3)
+        assertEquals(FocusTarget(Zone.QHEAD, 2), headRight2)
+
+        // QHEAD index 2 -> Config on RIGHT
+        val toConfig = nav.move(Direction.RIGHT, listCount = 3, railCount = 1)
+        assertEquals(FocusTarget(Zone.RAIL, 2), toConfig)
+
+        // Reset to QHEAD 0
+        nav.focus = FocusTarget(Zone.QHEAD, 0)
         // QHEAD -> QLIST on DOWN
         val listTarget = nav.move(Direction.DOWN, listCount = 3)
         assertEquals(FocusTarget(Zone.QLIST, 0), listTarget)
