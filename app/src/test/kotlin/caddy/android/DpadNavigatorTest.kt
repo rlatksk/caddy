@@ -85,4 +85,23 @@ class DpadNavigatorTest {
         // 5000ms later (8000L)
         assertFalse(nav.handleBack(8000L))
     }
+
+    @Test
+    fun testFiltersRightClamping() {
+        val nav = DpadNavigator()
+        nav.screen = ScreenMode.BROWSE
+        nav.focus = FocusTarget(Zone.FILTERS, 0)
+
+        val maxIndex = FilterMode.entries.size - 1
+        for (i in 0 until maxIndex) {
+            val target = nav.move(Direction.RIGHT)
+            assertEquals(FocusTarget(Zone.FILTERS, i + 1), target)
+            assertEquals(FocusTarget(Zone.FILTERS, i + 1), nav.focus)
+        }
+
+        // Try to move RIGHT past the last filter chip; should remain clamped at maxIndex
+        val targetAfterMax = nav.move(Direction.RIGHT)
+        assertEquals(FocusTarget(Zone.FILTERS, maxIndex), targetAfterMax)
+        assertEquals(FocusTarget(Zone.FILTERS, maxIndex), nav.focus)
+    }
 }
