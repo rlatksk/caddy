@@ -614,6 +614,7 @@ class MainActivity : AppCompatActivity() {
             }
             KeyEvent.KEYCODE_BUTTON_B, KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_ESCAPE -> {
                 val prevScreen = nav.screen
+                val prevZone = nav.focus.zone
                 val exit = nav.handleBack(System.currentTimeMillis())
                 if (exit) {
                     finish()
@@ -623,7 +624,7 @@ class MainActivity : AppCompatActivity() {
                     } else {
                         applyFocus()
                     }
-                    if (nav.focus.zone == Zone.RAIL && nav.screen == ScreenMode.BROWSE) {
+                    if (prevZone == Zone.RAIL && prevScreen == ScreenMode.BROWSE) {
                         Toast.makeText(this, "Press back again to exit", Toast.LENGTH_SHORT).show()
                     }
                 }

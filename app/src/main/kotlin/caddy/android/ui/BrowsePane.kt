@@ -71,7 +71,8 @@ class BrowsePane(
     private var currentSearchQuery: String = ""
     private var selectedIndex: Int = 0
     private var currentFocus: FocusTarget = FocusTarget(Zone.LIST, 0)
-
+    private var diskFilesSet: Set<String> = emptySet()
+    private var diskBaseNamesSet: Set<String> = emptySet()
     private var posterJob: Job? = null
 
     // Callbacks
@@ -440,14 +441,28 @@ class BrowsePane(
         for (item in queueItems) {
             queueMap[item.filename] = item
         }
-
+        refreshDiskCache()
         applyFilterAndSearch()
     }
+
+    private fun refreshDiskCache() {
+        val dir = romsDir
+        if (dir != null && dir.exists()) {
+            val list = dir.list() ?: emptyArray()
+            diskFilesSet = list.toHashSet()
+            diskBaseNamesSet = list.map { it.substringBeforeLast('.') }.toHashSet()
+        } else {
+            diskFilesSet = emptySet()
+            diskBaseNamesSet = emptySet()
+        }
+    }
+
     fun updateQueueItems(queueItems: List<DownloadQueue.Row>) {
         queueMap.clear()
         for (item in queueItems) {
             queueMap[item.filename] = item
         }
+        refreshDiskCache()
         gameAdapter.notifyDataSetChanged()
         updateDetailStatusAndAction()
     }
@@ -803,16 +818,9 @@ class BrowsePane(
             }
         }
 
-        // Check local disk if romsDir is provided
-        val rDir = romsDir
-        val diskFile = rDir?.let { File(it, entry.filename) }
-        var onDisk = diskFile?.exists() == true && diskFile.length() > 0
-        if (!onDisk && rDir != null && entry.filename.endsWith(".zip", ignoreCase = true)) {
-            val baseName = entry.filename.substringBeforeLast('.')
-            onDisk = rDir.listFiles { _, name ->
-                name.startsWith(baseName, ignoreCase = true) && !name.endsWith(".part", ignoreCase = true)
-            }?.isNotEmpty() == true
-        }
+        // Check local disk cache (O(1) lookup)
+        val baseName = entry.filename.substringBeforeLast('.')
+        val onDisk = entry.filename in diskFilesSet || baseName in diskBaseNamesSet
         return if (onDisk) {
             EntryStatus("ok", isOnDisk = true, isInQueue = false, isFailed = false)
         } else {
