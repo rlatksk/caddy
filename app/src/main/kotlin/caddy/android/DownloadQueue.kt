@@ -18,6 +18,7 @@ import caddy.KIND_BASE
  * resolve again (source id + source ref + filename) and resolution happens at
  * download time.
  */
+typealias DownloadQueueEntry = DownloadQueue.Row
 class DownloadQueue(context: Context) {
 
     data class Row(

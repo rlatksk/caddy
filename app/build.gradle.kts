@@ -80,6 +80,7 @@ dependencies {
     implementation("androidx.core:core-ktx:1.17.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.4")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
+    implementation("androidx.recyclerview:recyclerview:1.4.0")
     // In-process BitTorrent. Minerva is torrent-only, which is 76 of the 80
     // systems a repo can declare; there is no qBittorrent on Android to drive.
     implementation("org.libtorrent4j:libtorrent4j:2.1.0-39")
