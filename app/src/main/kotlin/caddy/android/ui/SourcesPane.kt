@@ -2,12 +2,16 @@ package caddy.android.ui
 
 import android.content.Context
 import android.graphics.Color
+import android.graphics.Rect
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.text.InputType
 import android.text.TextUtils
 import android.view.Gravity
+import android.view.KeyEvent
 import android.view.View
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.GridLayout
@@ -15,18 +19,17 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.Switch
 import android.widget.TextView
-
 class SourcesPane(context: Context) : LinearLayout(context) {
-
-    // Field section views
+    private val scrollView: ScrollView
+    private val repoUrlRow: LinearLayout
     private val repoUrlInput: EditText
     private val fetchButton: TextView
+    private val rawJsonRow: LinearLayout
     private val rawJsonInput: EditText
     private val applyJsonButton: TextView
+    private val romsDirRow: LinearLayout
     private val romsDirInput: EditText
     private val browseButton: TextView
-
-    // Grid section views
     private val gridLayout: GridLayout
     private val systemChips = mutableListOf<TextView>()
 
@@ -78,11 +81,10 @@ class SourcesPane(context: Context) : LinearLayout(context) {
         addView(borderLine)
 
         // Scrollable content
-        val scrollView = ScrollView(context).apply {
+        scrollView = ScrollView(context).apply {
             layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, 0, 1f)
             isFillViewport = true
         }
-
         val contentLayout = LinearLayout(context).apply {
             orientation = VERTICAL
             setPadding(
@@ -98,7 +100,7 @@ class SourcesPane(context: Context) : LinearLayout(context) {
         contentLayout.addView(fieldSectionLabel)
 
         // Field 0: Repo URL
-        val repoUrlRow = LinearLayout(context).apply {
+        repoUrlRow = LinearLayout(context).apply {
             orientation = HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT).apply {
@@ -117,7 +119,7 @@ class SourcesPane(context: Context) : LinearLayout(context) {
         contentLayout.addView(repoUrlRow)
 
         // Field 1: Raw JSON
-        val rawJsonRow = LinearLayout(context).apply {
+        rawJsonRow = LinearLayout(context).apply {
             orientation = HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT).apply {
@@ -137,7 +139,7 @@ class SourcesPane(context: Context) : LinearLayout(context) {
         contentLayout.addView(rawJsonRow)
 
         // Field 2: ROMs Root directory
-        val romsDirRow = LinearLayout(context).apply {
+        romsDirRow = LinearLayout(context).apply {
             orientation = HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT).apply {
@@ -379,8 +381,20 @@ class SourcesPane(context: Context) : LinearLayout(context) {
         setInputFocus(repoUrlInput, fetchButton, isFieldZone && currentFocus.index == 0)
         setInputFocus(rawJsonInput, applyJsonButton, isFieldZone && currentFocus.index == 1)
         setInputFocus(romsDirInput, browseButton, isFieldZone && currentFocus.index == 2)
-    }
 
+        if (isFieldZone) {
+            val row = when (currentFocus.index) {
+                0 -> repoUrlRow
+                1 -> rawJsonRow
+                2 -> romsDirRow
+                else -> null
+            }
+            row?.post {
+                val targetY = row.top - (scrollView.height / 4)
+                scrollView.smoothScrollTo(0, targetY.coerceAtLeast(0))
+            }
+        }
+    }
     private fun setInputFocus(input: EditText, button: TextView, focused: Boolean) {
         if (focused) {
             input.background = GradientDrawable().apply {
@@ -410,6 +424,12 @@ class SourcesPane(context: Context) : LinearLayout(context) {
             val isEnabled = enabledSystems.contains(allSystems.getOrNull(idx))
             val isFocused = currentFocus.zone == Zone.GRID && currentFocus.index == idx
             styleChip(chip, isEnabled, isFocused)
+            if (isFocused) {
+                chip.post {
+                    val targetY = (gridLayout.top + chip.top) - (scrollView.height / 3)
+                    scrollView.smoothScrollTo(0, targetY.coerceAtLeast(0))
+                }
+            }
         }
     }
 
@@ -418,8 +438,19 @@ class SourcesPane(context: Context) : LinearLayout(context) {
         if (isMetaFocused) {
             metadataSwitch.isFocusableInTouchMode = true
             metadataSwitch.requestFocus()
+            statusInfoText.post {
+                val targetY = statusInfoText.bottom - scrollView.height + CaddyTheme.dp(context, 32f)
+                scrollView.smoothScrollTo(0, targetY.coerceAtLeast(0))
+            }
         } else {
             metadataSwitch.clearFocus()
+        }
+    }
+
+    private fun showIme(view: View) {
+        view.post {
+            val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+            imm?.showSoftInput(view, InputMethodManager.SHOW_FORCED)
         }
     }
 
@@ -427,9 +458,21 @@ class SourcesPane(context: Context) : LinearLayout(context) {
         when (currentFocus.zone) {
             Zone.FIELD -> {
                 when (currentFocus.index) {
-                    0 -> onFetchRepo?.invoke(repoUrlInput.text.toString().trim())
-                    1 -> onApplyJson?.invoke(rawJsonInput.text.toString().trim())
-                    2 -> onRomsDirChanged?.invoke(romsDirInput.text.toString().trim())
+                    0 -> {
+                        repoUrlInput.isFocusableInTouchMode = true
+                        repoUrlInput.requestFocus()
+                        showIme(repoUrlInput)
+                    }
+                    1 -> {
+                        rawJsonInput.isFocusableInTouchMode = true
+                        rawJsonInput.requestFocus()
+                        showIme(rawJsonInput)
+                    }
+                    2 -> {
+                        romsDirInput.isFocusableInTouchMode = true
+                        romsDirInput.requestFocus()
+                        showIme(romsDirInput)
+                    }
                 }
                 return true
             }

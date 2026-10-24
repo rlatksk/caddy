@@ -223,22 +223,28 @@ class RailView(context: Context) : LinearLayout(context) {
     private fun render() {
         for (i in systemViews.indices) {
             val tv = systemViews[i]
+            val sysName = systems.getOrNull(i)?.uppercase() ?: ""
             val isSelected = (currentScreen == ScreenMode.BROWSE && i == selectedSystemIndex)
             val isFocusedItem = (railFocused && i == railFocusedIndex)
 
-            if (isSelected) {
+            if (isFocusedItem) {
+                // ACTIVE CURSOR ON RAIL: Full inverted background with arrow indicator
                 tv.setBackgroundColor(CaddyTheme.INK)
                 tv.setTextColor(CaddyTheme.GROUND)
-            } else if (isFocusedItem) {
-                val focusDrawable = GradientDrawable().apply {
-                    setColor(CaddyTheme.GROUND)
-                    setStroke(1, CaddyTheme.INK)
+                tv.text = "> $sysName"
+            } else if (isSelected) {
+                // RESTING SELECTION: Subtle panel highlight, NOT active cursor
+                val restingBg = GradientDrawable().apply {
+                    setColor(0xFF1E2124.toInt())
+                    setStroke(1, 0xFF3E4347.toInt())
                 }
-                tv.background = focusDrawable
+                tv.background = restingBg
                 tv.setTextColor(CaddyTheme.INK)
+                tv.text = "  $sysName"
             } else {
                 tv.setBackgroundColor(CaddyTheme.GROUND)
-                tv.setTextColor(CaddyTheme.INK)
+                tv.setTextColor(CaddyTheme.MUTE)
+                tv.text = "  $sysName"
             }
         }
 

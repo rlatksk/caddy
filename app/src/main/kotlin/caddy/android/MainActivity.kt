@@ -11,7 +11,9 @@ import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
 import android.util.Log
+import android.view.InputDevice
 import android.view.KeyEvent
+import android.view.MotionEvent
 import android.view.ViewGroup.LayoutParams
 import android.widget.FrameLayout
 import android.widget.LinearLayout
@@ -158,8 +160,11 @@ class MainActivity : AppCompatActivity() {
                 filter = mode
                 nav.filter = mode
             }
+            onSearchExit = {
+                nav.focus = FocusTarget(Zone.LIST, nav.focus.index)
+                applyFocus()
+            }
         }
-
         queuePane = QueuePane(this).apply {
             onResumeQueue = {
                 DownloadService.start(this@MainActivity)
@@ -464,6 +469,59 @@ class MainActivity : AppCompatActivity() {
         runCatching { startActivity(intent) }
     }
 
+    private var lastJoystickMoveMs = 0L
+    private var joystickCentered = true
+
+    override fun onGenericMotionEvent(event: MotionEvent): Boolean {
+        if ((event.source and InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK &&
+            event.action == MotionEvent.ACTION_MOVE
+        ) {
+            val rawX = event.getAxisValue(MotionEvent.AXIS_X)
+            val rawY = event.getAxisValue(MotionEvent.AXIS_Y)
+            val hatX = event.getAxisValue(MotionEvent.AXIS_HAT_X)
+            val hatY = event.getAxisValue(MotionEvent.AXIS_HAT_Y)
+
+            val x = if (Math.abs(rawX) > 0.2f) rawX else hatX
+            val y = if (Math.abs(rawY) > 0.2f) rawY else hatY
+
+            val threshold = 0.5f
+            if (Math.abs(x) < 0.25f && Math.abs(y) < 0.25f) {
+                joystickCentered = true
+                return true
+            }
+
+            val now = System.currentTimeMillis()
+            if (joystickCentered || (now - lastJoystickMoveMs > 180L)) {
+                val systems = store.enabledSystems.toList().sorted()
+                val listCount = when (nav.screen) {
+                    ScreenMode.BROWSE -> browsePane.getFilteredCount()
+                    ScreenMode.QUEUE -> queuePane.getItemCount()
+                    else -> 0
+                }
+                val gridCount = sourcesPane.getSystemCount()
+                val railCount = systems.size
+
+                val dir = when {
+                    y < -threshold -> Direction.UP
+                    y > threshold -> Direction.DOWN
+                    x < -threshold -> Direction.LEFT
+                    x > threshold -> Direction.RIGHT
+                    else -> null
+                }
+
+                if (dir != null) {
+                    nav.move(dir, listCount = listCount, gridCols = 4, gridCount = gridCount, railCount = railCount)
+                    applyFocus()
+                    lastJoystickMoveMs = now
+                    joystickCentered = false
+                    return true
+                }
+            }
+            return true
+        }
+        return super.onGenericMotionEvent(event)
+    }
+
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         if (event.action != KeyEvent.ACTION_DOWN) {
             return super.dispatchKeyEvent(event)
@@ -540,6 +598,14 @@ class MainActivity : AppCompatActivity() {
                 switchScreen(ScreenMode.QUEUE)
                 return true
             }
+            KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_MENU -> {
+                if (nav.screen != ScreenMode.SOURCES) {
+                    switchScreen(ScreenMode.SOURCES)
+                } else {
+                    switchScreen(ScreenMode.BROWSE)
+                }
+                return true
+            }
             KeyEvent.KEYCODE_BUTTON_Y, KeyEvent.KEYCODE_Y -> {
                 if (nav.screen == ScreenMode.BROWSE) {
                     nav.focus = FocusTarget(Zone.SEARCH, 0)
@@ -549,12 +615,13 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-
         return super.dispatchKeyEvent(event)
     }
-
     private fun handlePrimaryAction(systems: List<String>) {
         when (nav.focus.zone) {
+            Zone.SEARCH -> {
+                browsePane.focusSearch()
+            }
             Zone.RAIL -> {
                 val sys = systems.getOrNull(nav.focus.index)
                 if (sys != null) {

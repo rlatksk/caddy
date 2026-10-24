@@ -10,8 +10,11 @@ import android.text.Editable
 import android.text.TextUtils
 import android.text.TextWatcher
 import android.view.Gravity
+import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageView
@@ -36,12 +39,12 @@ class BrowsePane(
     // Center pane views
     private val systemTitleView: TextView
     private val systemMetaView: TextView
+    private val focusBreadcrumbView: TextView
     private val searchInput: EditText
 
     private val filterChips = mutableListOf<TextView>()
     private val recyclerView: RecyclerView
     private val gameAdapter: GameListAdapter
-
     // Detail pane views
     private val posterBox: FrameLayout
     private val posterImageView: ImageView
@@ -127,6 +130,22 @@ class BrowsePane(
         headerTextContainer.addView(systemMetaView)
         headerBar.addView(headerTextContainer)
 
+        focusBreadcrumbView = TextView(context).apply {
+            typeface = Typeface.MONOSPACE
+            textSize = 10f
+            setTypeface(typeface, Typeface.BOLD)
+            setTextColor(CaddyTheme.INK)
+            val padH = CaddyTheme.dp(context, 8f)
+            val padV = CaddyTheme.dp(context, 3f)
+            setPadding(padH, padV, padH, padV)
+            isSingleLine = true
+            val lp = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT).apply {
+                rightMargin = CaddyTheme.dp(context, 12f)
+            }
+            layoutParams = lp
+            text = "GAMES"
+        }
+        headerBar.addView(focusBreadcrumbView)
         searchInput = EditText(context).apply {
             val widthPx = CaddyTheme.dp(context, 196f)
             val padH = CaddyTheme.dp(context, 8f)
@@ -154,6 +173,20 @@ class BrowsePane(
                 }
                 override fun afterTextChanged(s: Editable?) {}
             })
+            setOnEditorActionListener { _, actionId, event ->
+                if (actionId == EditorInfo.IME_ACTION_SEARCH ||
+                    actionId == EditorInfo.IME_ACTION_DONE ||
+                    (event != null && event.keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_DOWN)
+                ) {
+                    val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+                    imm?.hideSoftInputFromWindow(windowToken, 0)
+                    clearFocus()
+                    onSearchExit?.invoke()
+                    true
+                } else {
+                    false
+                }
+            }
         }
         headerBar.addView(searchInput)
         centerPane.addView(headerBar)
@@ -427,9 +460,15 @@ class BrowsePane(
     }
 
     fun getFilteredCount(): Int = filteredEntries.size
+    var onSearchExit: (() -> Unit)? = null
 
     fun focusSearch() {
+        searchInput.isFocusableInTouchMode = true
         searchInput.requestFocus()
+        searchInput.post {
+            val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+            imm?.showSoftInput(searchInput, InputMethodManager.SHOW_FORCED)
+        }
     }
 
     fun setSelectedGameIndex(index: Int) {
@@ -451,6 +490,28 @@ class BrowsePane(
         renderHeaderFocus()
         renderFilters()
         renderDetailFocus()
+
+        focusBreadcrumbView.text = when (target.zone) {
+            Zone.RAIL -> "< SYSTEM RAIL"
+            Zone.LIST -> "GAMES LIST"
+            Zone.DETAIL -> "ACTION >"
+            Zone.FILTERS -> "FILTERS"
+            Zone.SEARCH -> "SEARCH"
+            else -> ""
+        }
+        val breadcrumbColor = when (target.zone) {
+            Zone.RAIL, Zone.FILTERS -> CaddyTheme.AMBER
+            Zone.LIST -> CaddyTheme.INK
+            Zone.DETAIL -> CaddyTheme.GREEN
+            Zone.SEARCH -> CaddyTheme.HOLD
+            else -> CaddyTheme.MUTE
+        }
+        focusBreadcrumbView.setTextColor(breadcrumbColor)
+        focusBreadcrumbView.background = GradientDrawable().apply {
+            setColor(0xFF141617.toInt())
+            setStroke(1, breadcrumbColor)
+        }
+
         gameAdapter.notifyDataSetChanged()
         if (target.zone == Zone.LIST) {
             if (selectedIndex != target.index && target.index in filteredEntries.indices) {
@@ -574,23 +635,26 @@ class BrowsePane(
         }
     }
 
+    private var rawActionLabel: String = "Download"
+
     private fun renderDetailFocus() {
         val isButtonFocused = currentFocus.zone == Zone.DETAIL
         if (isButtonFocused) {
             primaryActionButton.background = GradientDrawable().apply {
                 setColor(CaddyTheme.INK)
-                setStroke(2, CaddyTheme.AMBER)
+                setStroke(CaddyTheme.dp(context, 3f), CaddyTheme.AMBER)
             }
             primaryActionButton.setTextColor(CaddyTheme.GROUND)
+            primaryActionButton.text = "> $rawActionLabel <"
         } else {
             primaryActionButton.background = GradientDrawable().apply {
-                setColor(CaddyTheme.INK)
-                setStroke(1, CaddyTheme.INK)
+                setColor(0xFF141617.toInt())
+                setStroke(1, CaddyTheme.LINE)
             }
-            primaryActionButton.setTextColor(CaddyTheme.GROUND)
+            primaryActionButton.setTextColor(CaddyTheme.INK)
+            primaryActionButton.text = rawActionLabel
         }
     }
-
     private fun renderDetail() {
         val entry = filteredEntries.getOrNull(selectedIndex)
         if (entry == null) {
@@ -669,29 +733,29 @@ class BrowsePane(
         when (status.stateCode) {
             "ok" -> {
                 stateLineView.text = "On disk: verified"
-                primaryActionButton.text = "Re-download"
+                rawActionLabel = "Re-download"
             }
             "run" -> {
                 val pct = if ((qItem?.sizeBytes ?: 0) > 0) ((qItem?.bytesDone ?: 0) * 100 / qItem!!.sizeBytes).toInt() else 0
                 stateLineView.text = "Downloading · $pct%"
-                primaryActionButton.text = "Pause"
+                rawActionLabel = "Pause"
             }
             "que" -> {
                 stateLineView.text = "Queued: waiting for slot"
-                primaryActionButton.text = "Pause"
+                rawActionLabel = "Pause"
             }
             "pau" -> {
                 val pct = if ((qItem?.sizeBytes ?: 0) > 0) ((qItem?.bytesDone ?: 0) * 100 / qItem!!.sizeBytes).toInt() else 0
                 stateLineView.text = "Paused · $pct%"
-                primaryActionButton.text = "Resume"
+                rawActionLabel = "Resume"
             }
             "err" -> {
                 stateLineView.text = "Failed: ${qItem?.error ?: "checksum or download error"}"
-                primaryActionButton.text = "Retry"
+                rawActionLabel = "Retry"
             }
             else -> {
                 stateLineView.text = "Ready to download"
-                primaryActionButton.text = "Download"
+                rawActionLabel = "Download"
             }
         }
         renderDetailFocus()
@@ -844,20 +908,20 @@ class BrowsePane(
         override fun onBindViewHolder(holder: GameViewHolder, position: Int) {
             val entry = filteredEntries[position]
             val isSelected = position == selectedIndex
+            val isCursorActive = isSelected && currentFocus.zone == Zone.LIST
+            val isRestingSelection = isSelected && currentFocus.zone != Zone.LIST
             val status = getEntryStatus(entry)
 
             holder.titleView.text = entry.title
             holder.sizeView.text = formatBytes(entry.sizeBytes)
             holder.stateView.text = if (status.stateCode.isNotEmpty()) status.stateCode else "—"
 
-            if (isSelected) {
-                // Invert row completely: ink ground, ground text
+            if (isCursorActive) {
+                // ACTIVE CURSOR: full-contrast invert (ink ground, ground text)
                 holder.container.setBackgroundColor(CaddyTheme.INK)
                 holder.titleView.setTextColor(CaddyTheme.GROUND)
                 holder.sizeView.setTextColor(0xFF4A4D48.toInt())
 
-                // Darkened status colors for inverted light ground:
-                // run #8a5f00, ok #1f6b41, err #a32a2a, pau #2c5c8f
                 val darkColor = when (status.stateCode) {
                     "run" -> 0xFF8A5F00.toInt()
                     "ok" -> 0xFF1F6B41.toInt()
@@ -866,8 +930,26 @@ class BrowsePane(
                     else -> CaddyTheme.GROUND
                 }
                 holder.stateView.setTextColor(darkColor)
+            } else if (isRestingSelection) {
+                // RESTING SELECTION: subtle dark panel with 1px border so user knows it's the selected game without stealing cursor focus
+                val bg = GradientDrawable().apply {
+                    setColor(0xFF1E2124.toInt())
+                    setStroke(1, 0xFF3E4347.toInt())
+                }
+                holder.container.background = bg
+                holder.titleView.setTextColor(CaddyTheme.INK)
+                holder.sizeView.setTextColor(CaddyTheme.MUTE)
+
+                val stateColor = when (status.stateCode) {
+                    "run" -> CaddyTheme.AMBER
+                    "ok" -> CaddyTheme.GREEN
+                    "err" -> CaddyTheme.RED
+                    "pau" -> CaddyTheme.HOLD
+                    "que" -> CaddyTheme.MUTE
+                    else -> CaddyTheme.MUTE
+                }
+                holder.stateView.setTextColor(stateColor)
             } else {
-                // Default dark row
                 val bg = LayerDrawable(arrayOf(
                     GradientDrawable().apply { setColor(CaddyTheme.GROUND) },
                     GradientDrawable().apply { setColor(CaddyTheme.LINE_SOFT) }
