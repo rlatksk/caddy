@@ -58,7 +58,7 @@ class BrowsePane(
     private val synopsisView: TextView
     private val stateLineView: TextView
     private val primaryActionButton: TextView
-
+    private val openFolderButton: TextView
     // State data
     private var systemId: String = ""
     private var sourceName: String = ""
@@ -80,8 +80,8 @@ class BrowsePane(
     var onPauseRequested: ((id: Long) -> Unit)? = null
     var onResumeRequested: ((id: Long) -> Unit)? = null
     var onGameSelected: ((index: Int, entry: CatalogEntry) -> Unit)? = null
+    var onOpenGameFolder: ((systemId: String, entry: CatalogEntry) -> Unit)? = null
     var onFilterChanged: ((mode: FilterMode) -> Unit)? = null
-
     init {
         orientation = HORIZONTAL
         layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
@@ -426,6 +426,26 @@ class BrowsePane(
             }
         }
         actionsContainer.addView(primaryActionButton)
+
+        openFolderButton = TextView(context).apply {
+            typeface = Typeface.MONOSPACE
+            textSize = 11f
+            gravity = Gravity.CENTER
+            setPadding(0, CaddyTheme.dp(context, 7f), 0, CaddyTheme.dp(context, 7f))
+            val lp = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT).apply {
+                topMargin = CaddyTheme.dp(context, 6f)
+            }
+            layoutParams = lp
+            text = "[OPEN GAME FOLDER]"
+            visibility = View.GONE
+            setOnClickListener {
+                filteredEntries.getOrNull(selectedIndex)?.let { entry ->
+                    onOpenGameFolder?.invoke(systemId, entry)
+                }
+            }
+        }
+        actionsContainer.addView(openFolderButton)
+
         detailPane.addView(actionsContainer)
 
         addView(detailPane)
@@ -563,9 +583,12 @@ class BrowsePane(
 
     fun triggerPrimaryAction() {
         val entry = filteredEntries.getOrNull(selectedIndex) ?: return
+        if (currentFocus.zone == Zone.DETAIL && currentFocus.index == 1) {
+            onOpenGameFolder?.invoke(systemId, entry)
+            return
+        }
         val status = getEntryStatus(entry)
         val qItem = queueMap[entry.filename]
-
         when (status.stateCode) {
             "ok" -> onDownloadRequested?.invoke(entry)
             "run" -> qItem?.let { onPauseRequested?.invoke(it.id) }
@@ -683,8 +706,33 @@ class BrowsePane(
     private var rawActionLabel: String = "Download"
 
     private fun renderDetailFocus() {
-        val isButtonFocused = currentFocus.zone == Zone.DETAIL
-        if (isButtonFocused) {
+        val isDetailFocused = currentFocus.zone == Zone.DETAIL
+        val entry = filteredEntries.getOrNull(selectedIndex)
+        val status = entry?.let { getEntryStatus(it) }
+        val isOnDisk = status?.isOnDisk == true
+
+        openFolderButton.visibility = if (isOnDisk) View.VISIBLE else View.GONE
+        if (openFolderButton.visibility == View.VISIBLE) {
+            val isFolderFocused = isDetailFocused && currentFocus.index == 1
+            if (isFolderFocused) {
+                openFolderButton.background = GradientDrawable().apply {
+                    setColor(CaddyTheme.INK)
+                    setStroke(CaddyTheme.dp(context, 2f), CaddyTheme.AMBER)
+                }
+                openFolderButton.setTextColor(CaddyTheme.GROUND)
+                openFolderButton.text = "> OPEN GAME FOLDER <"
+            } else {
+                openFolderButton.background = GradientDrawable().apply {
+                    setColor(0xFF141617.toInt())
+                    setStroke(1, CaddyTheme.LINE)
+                }
+                openFolderButton.setTextColor(CaddyTheme.INK)
+                openFolderButton.text = "[OPEN GAME FOLDER]"
+            }
+        }
+
+        val isPrimaryFocused = isDetailFocused && currentFocus.index == 0
+        if (isPrimaryFocused) {
             primaryActionButton.background = GradientDrawable().apply {
                 setColor(CaddyTheme.INK)
                 setStroke(CaddyTheme.dp(context, 3f), CaddyTheme.AMBER)
@@ -700,6 +748,7 @@ class BrowsePane(
             primaryActionButton.text = rawActionLabel
         }
     }
+
     private fun renderDetail() {
         val entry = filteredEntries.getOrNull(selectedIndex)
         if (entry == null) {

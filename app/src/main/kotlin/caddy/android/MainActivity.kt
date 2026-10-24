@@ -27,6 +27,7 @@ import caddy.KIND_UPDATE
 import caddy.asVariant
 import caddy.SourceAdapter
 import caddy.SourceConfig
+import caddy.SystemRouter
 import caddy.builtInAdapters
 import caddy.parseIndex
 import caddy.android.ui.BrowsePane
@@ -164,6 +165,9 @@ class MainActivity : AppCompatActivity() {
                 nav.focus = FocusTarget(Zone.LIST, nav.focus.index)
                 applyFocus()
             }
+            onOpenGameFolder = { sys, _ ->
+                openSystemFolder(sys)
+            }
         }
         queuePane = QueuePane(this).apply {
             onResumeQueue = {
@@ -191,7 +195,9 @@ class MainActivity : AppCompatActivity() {
                         queue.updateState(item.id, DownloadQueue.STATE_QUEUED)
                         DownloadService.start(this@MainActivity)
                     }
-                    DownloadQueue.STATE_DONE -> {}
+                    DownloadQueue.STATE_DONE -> {
+                        openSystemFolder(item.system)
+                    }
                 }
                 refreshQueueState()
             }
@@ -548,6 +554,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun openSystemFolder(system: String) {
+        val sysDir = SystemRouter.relativePath(system)
+        val fullPath = File(store.romsRoot, sysDir).absolutePath
+        openFilesApp(fullPath)
+    }
     private fun requestStorageAccess() {
         val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, Uri.parse("package:$packageName"))

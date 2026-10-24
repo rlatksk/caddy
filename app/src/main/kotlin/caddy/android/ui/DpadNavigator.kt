@@ -84,6 +84,8 @@ class DpadNavigator {
                 Direction.RIGHT -> FocusTarget(Zone.DETAIL, focus.index)
             }
             Zone.DETAIL -> when (dir) {
+                Direction.UP -> if (focus.index > 0) FocusTarget(Zone.DETAIL, 0) else focus
+                Direction.DOWN -> FocusTarget(Zone.DETAIL, 1)
                 Direction.LEFT -> FocusTarget(Zone.LIST, focus.index)
                 else -> focus
             }
