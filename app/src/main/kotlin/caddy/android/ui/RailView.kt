@@ -253,7 +253,15 @@ class RailView(context: Context) : LinearLayout(context) {
 
     private fun updateFooterState() {
         val isQueueScreen = (currentScreen == ScreenMode.QUEUE)
-        if (isQueueScreen) {
+        val isQueueFocused = (railFocused && railFocusedIndex == systems.size)
+
+        if (isQueueFocused) {
+            queueButton.background = GradientDrawable().apply {
+                setColor(CaddyTheme.INK)
+                setStroke(CaddyTheme.dp(context, 2f), CaddyTheme.AMBER)
+            }
+            queueLabel.setTextColor(CaddyTheme.GROUND)
+        } else if (isQueueScreen) {
             queueButton.setBackgroundColor(CaddyTheme.INK)
             queueLabel.setTextColor(CaddyTheme.GROUND)
         } else {
@@ -262,7 +270,15 @@ class RailView(context: Context) : LinearLayout(context) {
         }
 
         val isSourcesScreen = (currentScreen == ScreenMode.SOURCES)
-        if (isSourcesScreen) {
+        val isSourcesFocused = (railFocused && railFocusedIndex == systems.size + 1)
+
+        if (isSourcesFocused) {
+            sourcesButton.background = GradientDrawable().apply {
+                setColor(CaddyTheme.INK)
+                setStroke(CaddyTheme.dp(context, 2f), CaddyTheme.AMBER)
+            }
+            sourcesLabel.setTextColor(CaddyTheme.GROUND)
+        } else if (isSourcesScreen) {
             sourcesButton.setBackgroundColor(CaddyTheme.INK)
             sourcesLabel.setTextColor(CaddyTheme.GROUND)
         } else {

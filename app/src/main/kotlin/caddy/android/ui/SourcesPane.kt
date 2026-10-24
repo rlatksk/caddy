@@ -46,9 +46,9 @@ class SourcesPane(context: Context) : LinearLayout(context) {
     var onFetchRepo: ((url: String) -> Unit)? = null
     var onApplyJson: ((json: String) -> Unit)? = null
     var onRomsDirChanged: ((dir: String) -> Unit)? = null
+    var onBrowseRomsDir: (() -> Unit)? = null
     var onToggleSystem: ((sys: String, enabled: Boolean) -> Unit)? = null
     var onToggleMetadata: ((enabled: Boolean) -> Unit)? = null
-
     init {
         orientation = VERTICAL
         layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
@@ -155,7 +155,7 @@ class SourcesPane(context: Context) : LinearLayout(context) {
             }
         }
         browseButton = createActionButton("[BROWSE]").apply {
-            setOnClickListener { onRomsDirChanged?.invoke(romsDirInput.text.toString().trim()) }
+            setOnClickListener { onBrowseRomsDir?.invoke() }
         }
         romsDirRow.addView(romsDirInput)
         romsDirRow.addView(browseButton)
@@ -469,9 +469,7 @@ class SourcesPane(context: Context) : LinearLayout(context) {
                         showIme(rawJsonInput)
                     }
                     2 -> {
-                        romsDirInput.isFocusableInTouchMode = true
-                        romsDirInput.requestFocus()
-                        showIme(romsDirInput)
+                        onBrowseRomsDir?.invoke()
                     }
                 }
                 return true

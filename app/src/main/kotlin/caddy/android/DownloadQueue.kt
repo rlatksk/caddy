@@ -82,8 +82,8 @@ class DownloadQueue(context: Context) {
     ): Long {
         // Same file already queued or running: don't add a second copy.
         readable().query(
-            "downloads", arrayOf("id"), "filename = ? AND state IN (?, ?)",
-            arrayOf(filename, STATE_QUEUED, STATE_RUNNING), null, null, null,
+            "downloads", arrayOf("id"), "filename = ? AND state IN (?, ?, ?)",
+            arrayOf(filename, STATE_QUEUED, STATE_RUNNING, STATE_UNZIPPING), null, null, null,
         ).use { cursor ->
             if (cursor.moveToFirst()) return cursor.getLong(0)
         }
@@ -130,9 +130,9 @@ class DownloadQueue(context: Context) {
     ).use { cursor -> buildList { while (cursor.moveToNext()) add(cursor.toRow()) } }
 
     fun pendingCount(): Int = readable().rawQuery(
-        "SELECT COUNT(*) FROM downloads WHERE state IN (?, ?)", arrayOf(STATE_QUEUED, STATE_RUNNING),
+        "SELECT COUNT(*) FROM downloads WHERE state IN (?, ?, ?)",
+        arrayOf(STATE_QUEUED, STATE_RUNNING, STATE_UNZIPPING),
     ).use { if (it.moveToFirst()) it.getInt(0) else 0 }
-
     fun updateState(id: Long, state: String, error: String? = null) {
         writable().update("downloads", ContentValues().apply {
             put("state", state)
@@ -158,13 +158,13 @@ class DownloadQueue(context: Context) {
      * `.part` file.
      */
     fun requeueInterrupted(active: Set<Long> = emptySet()): Int {
-        val clause = if (active.isEmpty()) "state = ?" else
-            "state = ? AND id NOT IN (${active.joinToString(",")})"
+        val clause = if (active.isEmpty()) "state IN (?, ?)" else
+            "state IN (?, ?) AND id NOT IN (${active.joinToString(",")})"
         return writable().update(
             "downloads",
             ContentValues().apply { put("state", STATE_QUEUED) },
             clause,
-            arrayOf(STATE_RUNNING),
+            arrayOf(STATE_RUNNING, STATE_UNZIPPING),
         )
     }
 
@@ -199,10 +199,10 @@ class DownloadQueue(context: Context) {
 
         const val STATE_QUEUED = "queued"
         const val STATE_RUNNING = "running"
+        const val STATE_UNZIPPING = "unzipping"
         const val STATE_PAUSED = "paused"
         const val STATE_DONE = "done"
         const val STATE_FAILED = "failed"
-
         /** Marks a row whose URL came from the browser-capture WebView. */
         const val CAPTURED_SOURCE = "__capture"
     }

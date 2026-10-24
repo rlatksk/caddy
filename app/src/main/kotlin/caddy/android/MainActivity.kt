@@ -206,6 +206,9 @@ class MainActivity : AppCompatActivity() {
                 updateRailSystems()
                 updateSourcesPaneConfig()
             }
+            onBrowseRomsDir = {
+                openRomsDirectoryPicker()
+            }
         }
 
         firstRunPane = FirstRunPane(this).apply {
@@ -459,8 +462,56 @@ class MainActivity : AppCompatActivity() {
                 PackageManager.PERMISSION_GRANTED
         }
 
+    private fun openRomsDirectoryPicker() {
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
+            addFlags(
+                Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                Intent.FLAG_GRANT_WRITE_URI_PERMISSION or
+                Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION
+            )
+        }
+        startActivityForResult(intent, REQUEST_PICK_ROMS_DIR)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_PICK_ROMS_DIR && resultCode == RESULT_OK) {
+            val uri = data?.data ?: return
+            runCatching {
+                contentResolver.takePersistableUriPermission(
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                )
+            }
+            val path = resolveTreeUriToPath(uri)
+            if (path != null) {
+                store.romsRoot = path
+                updateSourcesPaneConfig()
+                loadCatalogForSystem(currentSystem)
+                Toast.makeText(this, "ROMs directory set to $path", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun resolveTreeUriToPath(uri: Uri): String? {
+        val docId = android.provider.DocumentsContract.getTreeDocumentId(uri) ?: return null
+        if (docId.startsWith("raw:")) {
+            return docId.removePrefix("raw:")
+        }
+        val parts = docId.split(":")
+        val volume = parts.getOrNull(0) ?: return null
+        val subPath = parts.getOrNull(1) ?: ""
+
+        return if (volume.equals("primary", ignoreCase = true)) {
+            val base = Environment.getExternalStorageDirectory().absolutePath
+            if (subPath.isNotEmpty()) "$base/$subPath" else base
+        } else {
+            val base = "/storage/$volume"
+            if (subPath.isNotEmpty()) "$base/$subPath" else base
+        }
+    }
+
     private fun requestStorageAccess() {
-        Toast.makeText(this, "Grant \"All files access\" for ROM downloads", Toast.LENGTH_LONG).show()
         val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, Uri.parse("package:$packageName"))
         } else {
@@ -623,11 +674,17 @@ class MainActivity : AppCompatActivity() {
                 browsePane.focusSearch()
             }
             Zone.RAIL -> {
-                val sys = systems.getOrNull(nav.focus.index)
-                if (sys != null) {
-                    switchToSystem(sys)
-                    nav.focus = FocusTarget(Zone.LIST, 0)
-                    applyFocus()
+                if (nav.focus.index < systems.size) {
+                    val sys = systems.getOrNull(nav.focus.index)
+                    if (sys != null) {
+                        switchToSystem(sys)
+                        nav.focus = FocusTarget(Zone.LIST, 0)
+                        applyFocus()
+                    }
+                } else if (nav.focus.index == systems.size) {
+                    switchScreen(ScreenMode.QUEUE)
+                } else if (nav.focus.index == systems.size + 1) {
+                    switchScreen(ScreenMode.SOURCES)
                 }
             }
             Zone.FILTERS -> {
@@ -677,5 +734,9 @@ class MainActivity : AppCompatActivity() {
             "device ${Build.MANUFACTURER} ${Build.MODEL} / API ${Build.VERSION.SDK_INT}\n" +
                 error.stackTraceToString()
         )
+    }
+
+    companion object {
+        private const val REQUEST_PICK_ROMS_DIR = 1001
     }
 }

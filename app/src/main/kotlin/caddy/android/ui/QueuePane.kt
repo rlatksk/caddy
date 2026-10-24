@@ -344,11 +344,11 @@ class QueuePane(context: Context) : LinearLayout(context) {
 
             val progressStr = when (item.state) {
                 DownloadQueue.STATE_DONE -> "▮▮▮▮▮▮▮▮▮▮ 100% (${formatBytes(item.sizeBytes)})"
+                DownloadQueue.STATE_UNZIPPING -> "▮▮▮▮▮▮▮▮▮▮ unzipping archive…"
                 DownloadQueue.STATE_FAILED -> "failed (${formatBytes(item.bytesDone)} / ${formatBytes(item.sizeBytes)})"
                 else -> buildProgressBar(item.bytesDone, item.sizeBytes)
             }
             holder.progressText.text = progressStr
-
             val statusText: String
             val statusColor: Int
             val actionLabel: String
@@ -358,6 +358,11 @@ class QueuePane(context: Context) : LinearLayout(context) {
                     statusText = "downloading"
                     statusColor = CaddyTheme.GREEN
                     actionLabel = "[PAUSE]"
+                }
+                DownloadQueue.STATE_UNZIPPING -> {
+                    statusText = "unzipping"
+                    statusColor = CaddyTheme.AMBER
+                    actionLabel = "[WAIT]"
                 }
                 DownloadQueue.STATE_QUEUED -> {
                     statusText = "waiting"

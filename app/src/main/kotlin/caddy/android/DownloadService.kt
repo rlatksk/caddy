@@ -131,16 +131,20 @@ class DownloadService : Service() {
                         file.delete()
                         throw SourceUnavailable(result.reason, retryable = false)
                     }
+                    postProcessFile(row, file, directory)
                     withContext(Dispatchers.IO) { queue.updateState(row.id, DownloadQueue.STATE_DONE) }
                 }
-                is ResolvedDownload.Torrent -> TorrentDownloader(http, this).fetch(
-                    resolved = resolved,
-                    destination = File(directory, resolved.filename),
-                    onProgress = { done, total ->
-                        queue.updateProgress(row.id, done, total)
-                        notifyProgress(row, done, total)
-                    },
-                ).also {
+                is ResolvedDownload.Torrent -> {
+                    TorrentDownloader(http, this).fetch(
+                        resolved = resolved,
+                        destination = File(directory, resolved.filename),
+                        onProgress = { done, total ->
+                            queue.updateProgress(row.id, done, total)
+                            notifyProgress(row, done, total)
+                        },
+                    )
+                    val file = File(directory, resolved.filename)
+                    postProcessFile(row, file, directory)
                     withContext(Dispatchers.IO) { queue.updateState(row.id, DownloadQueue.STATE_DONE) }
                 }
                 is ResolvedDownload.NeedsCapture ->
@@ -217,6 +221,55 @@ class DownloadService : Service() {
             "%.1f MB".format(done / 1e6)
         }
         manager().notify(NOTIFICATION_ID, buildNotification("${row.title} — $label", done, total, pct))
+    }
+
+    private fun notifyUnzipping(row: DownloadQueue.Row) {
+        manager().notify(NOTIFICATION_ID, buildNotification("${row.title} — Unzipping archive…", 0, 0, 100))
+    }
+
+    private fun postProcessFile(row: DownloadQueue.Row, file: File, directory: File) {
+        if (!file.exists()) return
+        if (file.name.endsWith(".zip", ignoreCase = true)) {
+            queue.updateState(row.id, DownloadQueue.STATE_UNZIPPING)
+            notifyUnzipping(row)
+            try {
+                unzip(file, directory)
+                file.delete()
+            } catch (e: Exception) {
+                android.util.Log.e("caddy", "unzip failed for ${file.name}", e)
+                throw e
+            }
+        }
+    }
+
+    private fun unzip(zipFile: File, targetDir: File) {
+        targetDir.mkdirs()
+        val canonicalDest = targetDir.canonicalPath
+        java.io.FileInputStream(zipFile).use { fis ->
+            java.util.zip.ZipInputStream(java.io.BufferedInputStream(fis)).use { zis ->
+                var entry = zis.nextEntry
+                val buffer = ByteArray(32768)
+                while (entry != null) {
+                    val entryFile = File(targetDir, entry.name)
+                    if (!entryFile.canonicalPath.startsWith(canonicalDest)) {
+                        throw SecurityException("Zip entry path traversal detected: ${entry.name}")
+                    }
+                    if (entry.isDirectory) {
+                        entryFile.mkdirs()
+                    } else {
+                        entryFile.parentFile?.mkdirs()
+                        java.io.FileOutputStream(entryFile).use { fos ->
+                            var len: Int
+                            while (zis.read(buffer).also { len = it } > 0) {
+                                fos.write(buffer, 0, len)
+                            }
+                        }
+                    }
+                    zis.closeEntry()
+                    entry = zis.nextEntry
+                }
+            }
+        }
     }
 
     private fun buildNotification(

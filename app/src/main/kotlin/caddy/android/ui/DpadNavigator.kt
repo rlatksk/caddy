@@ -59,7 +59,7 @@ class DpadNavigator {
         return when (focus.zone) {
             Zone.RAIL -> when (dir) {
                 Direction.UP -> FocusTarget(Zone.RAIL, (focus.index - 1).coerceAtLeast(0))
-                Direction.DOWN -> FocusTarget(Zone.RAIL, (focus.index + 1).coerceAtMost((railCount - 1).coerceAtLeast(0)))
+                Direction.DOWN -> FocusTarget(Zone.RAIL, (focus.index + 1).coerceAtMost(railCount + 1))
                 Direction.RIGHT -> FocusTarget(Zone.LIST, 0)
                 Direction.LEFT -> focus
             }
@@ -95,7 +95,7 @@ class DpadNavigator {
         return when (focus.zone) {
             Zone.RAIL -> when (dir) {
                 Direction.UP -> FocusTarget(Zone.RAIL, (focus.index - 1).coerceAtLeast(0))
-                Direction.DOWN -> FocusTarget(Zone.RAIL, (focus.index + 1).coerceAtMost((railCount - 1).coerceAtLeast(0)))
+                Direction.DOWN -> FocusTarget(Zone.RAIL, (focus.index + 1).coerceAtMost(railCount + 1))
                 Direction.RIGHT -> FocusTarget(Zone.QLIST, 0)
                 Direction.LEFT -> focus
             }
@@ -122,7 +122,7 @@ class DpadNavigator {
         return when (focus.zone) {
             Zone.RAIL -> when (dir) {
                 Direction.UP -> FocusTarget(Zone.RAIL, (focus.index - 1).coerceAtLeast(0))
-                Direction.DOWN -> FocusTarget(Zone.RAIL, (focus.index + 1).coerceAtMost((railCount - 1).coerceAtLeast(0)))
+                Direction.DOWN -> FocusTarget(Zone.RAIL, (focus.index + 1).coerceAtMost(railCount + 1))
                 Direction.RIGHT -> FocusTarget(Zone.FIELD, 0)
                 Direction.LEFT -> focus
             }

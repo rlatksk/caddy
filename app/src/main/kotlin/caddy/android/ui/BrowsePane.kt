@@ -146,6 +146,19 @@ class BrowsePane(
             text = "GAMES"
         }
         headerBar.addView(focusBreadcrumbView)
+
+        val shortcutsLegendView = TextView(context).apply {
+            typeface = Typeface.MONOSPACE
+            textSize = 10f
+            setTextColor(CaddyTheme.MUTE)
+            val lp = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT).apply {
+                rightMargin = CaddyTheme.dp(context, 12f)
+            }
+            layoutParams = lp
+            text = "[X] QUEUE  [START] CFG"
+            isSingleLine = true
+        }
+        headerBar.addView(shortcutsLegendView)
         searchInput = EditText(context).apply {
             val widthPx = CaddyTheme.dp(context, 196f)
             val padH = CaddyTheme.dp(context, 8f)
@@ -732,8 +745,12 @@ class BrowsePane(
 
         when (status.stateCode) {
             "ok" -> {
-                stateLineView.text = "On disk: verified"
+                stateLineView.text = "On disk: ready to play"
                 rawActionLabel = "Re-download"
+            }
+            "unz" -> {
+                stateLineView.text = "Unzipping archive…"
+                rawActionLabel = "Unzipping…"
             }
             "run" -> {
                 val pct = if ((qItem?.sizeBytes ?: 0) > 0) ((qItem?.bytesDone ?: 0) * 100 / qItem!!.sizeBytes).toInt() else 0
@@ -779,6 +796,7 @@ class BrowsePane(
                 DownloadQueue.STATE_RUNNING -> EntryStatus("run", isOnDisk = false, isInQueue = true, isFailed = false)
                 DownloadQueue.STATE_QUEUED -> EntryStatus("que", isOnDisk = false, isInQueue = true, isFailed = false)
                 DownloadQueue.STATE_PAUSED -> EntryStatus("pau", isOnDisk = false, isInQueue = true, isFailed = false)
+                DownloadQueue.STATE_UNZIPPING -> EntryStatus("unz", isOnDisk = false, isInQueue = true, isFailed = false)
                 DownloadQueue.STATE_FAILED -> EntryStatus("err", isOnDisk = false, isInQueue = false, isFailed = true)
                 DownloadQueue.STATE_DONE -> EntryStatus("ok", isOnDisk = true, isInQueue = false, isFailed = false)
                 else -> EntryStatus("", isOnDisk = false, isInQueue = false, isFailed = false)
@@ -786,8 +804,15 @@ class BrowsePane(
         }
 
         // Check local disk if romsDir is provided
-        val diskFile = romsDir?.let { File(it, entry.filename) }
-        val onDisk = diskFile?.exists() == true && diskFile.length() > 0
+        val rDir = romsDir
+        val diskFile = rDir?.let { File(it, entry.filename) }
+        var onDisk = diskFile?.exists() == true && diskFile.length() > 0
+        if (!onDisk && rDir != null && entry.filename.endsWith(".zip", ignoreCase = true)) {
+            val baseName = entry.filename.substringBeforeLast('.')
+            onDisk = rDir.listFiles { _, name ->
+                name.startsWith(baseName, ignoreCase = true) && !name.endsWith(".part", ignoreCase = true)
+            }?.isNotEmpty() == true
+        }
         return if (onDisk) {
             EntryStatus("ok", isOnDisk = true, isInQueue = false, isFailed = false)
         } else {
@@ -923,7 +948,7 @@ class BrowsePane(
                 holder.sizeView.setTextColor(0xFF4A4D48.toInt())
 
                 val darkColor = when (status.stateCode) {
-                    "run" -> 0xFF8A5F00.toInt()
+                    "run", "unz" -> 0xFF8A5F00.toInt()
                     "ok" -> 0xFF1F6B41.toInt()
                     "err" -> 0xFFA32A2A.toInt()
                     "pau" -> 0xFF2C5C8F.toInt()
@@ -941,7 +966,7 @@ class BrowsePane(
                 holder.sizeView.setTextColor(CaddyTheme.MUTE)
 
                 val stateColor = when (status.stateCode) {
-                    "run" -> CaddyTheme.AMBER
+                    "run", "unz" -> CaddyTheme.AMBER
                     "ok" -> CaddyTheme.GREEN
                     "err" -> CaddyTheme.RED
                     "pau" -> CaddyTheme.HOLD
