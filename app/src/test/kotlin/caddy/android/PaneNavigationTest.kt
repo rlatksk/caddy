@@ -33,9 +33,9 @@ class PaneNavigationTest {
         val listNext = nav.move(Direction.DOWN, listCount = 3)
         assertEquals(FocusTarget(Zone.QLIST, 1), listNext)
 
-        // QLIST -> RAIL on LEFT
-        val railTarget = nav.move(Direction.LEFT, listCount = 3)
-        assertEquals(FocusTarget(Zone.RAIL, 0), railTarget)
+        // QLIST -> RAIL on LEFT (focuses [Q] at index railCount=1)
+        val railTarget = nav.move(Direction.LEFT, listCount = 3, railCount = 1)
+        assertEquals(FocusTarget(Zone.RAIL, 1), railTarget)
     }
 
     @Test

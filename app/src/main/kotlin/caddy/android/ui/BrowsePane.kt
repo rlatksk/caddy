@@ -201,6 +201,19 @@ class BrowsePane(
                     false
                 }
             }
+            setOnKeyListener { _, keyCode, event ->
+                if (event.action == KeyEvent.ACTION_DOWN &&
+                    (keyCode == KeyEvent.KEYCODE_BUTTON_B || keyCode == KeyEvent.KEYCODE_BACK || keyCode == KeyEvent.KEYCODE_ESCAPE)
+                ) {
+                    val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+                    imm?.hideSoftInputFromWindow(windowToken, 0)
+                    clearFocus()
+                    onSearchExit?.invoke()
+                    true
+                } else {
+                    false
+                }
+            }
         }
         headerBar.addView(searchInput)
         centerPane.addView(headerBar)
@@ -602,7 +615,7 @@ class BrowsePane(
         if (currentFocus.zone == Zone.SEARCH) {
             searchInput.background = GradientDrawable().apply {
                 setColor(CaddyTheme.FIELD)
-                setStroke(1, CaddyTheme.INK)
+                setStroke(CaddyTheme.dp(context, 2f), CaddyTheme.HOLD)
             }
             searchInput.requestFocus()
         } else {
@@ -610,7 +623,11 @@ class BrowsePane(
                 setColor(CaddyTheme.FIELD)
                 setStroke(1, 0xFF222526.toInt())
             }
-            searchInput.clearFocus()
+            if (searchInput.hasFocus()) {
+                val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+                imm?.hideSoftInputFromWindow(searchInput.windowToken, 0)
+                searchInput.clearFocus()
+            }
         }
     }
 

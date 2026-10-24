@@ -561,8 +561,7 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 if (dir != null) {
-                    nav.move(dir, listCount = listCount, gridCols = 4, gridCount = gridCount, railCount = railCount)
-                    applyFocus()
+                    dispatchNavigationMove(dir)
                     lastJoystickMoveMs = now
                     joystickCentered = false
                     return true
@@ -589,23 +588,19 @@ class MainActivity : AppCompatActivity() {
 
         when (event.keyCode) {
             KeyEvent.KEYCODE_DPAD_UP -> {
-                nav.move(Direction.UP, listCount = listCount, gridCols = 4, gridCount = gridCount, railCount = railCount)
-                applyFocus()
+                dispatchNavigationMove(Direction.UP)
                 return true
             }
             KeyEvent.KEYCODE_DPAD_DOWN -> {
-                nav.move(Direction.DOWN, listCount = listCount, gridCols = 4, gridCount = gridCount, railCount = railCount)
-                applyFocus()
+                dispatchNavigationMove(Direction.DOWN)
                 return true
             }
             KeyEvent.KEYCODE_DPAD_LEFT -> {
-                nav.move(Direction.LEFT, listCount = listCount, gridCols = 4, gridCount = gridCount, railCount = railCount)
-                applyFocus()
+                dispatchNavigationMove(Direction.LEFT)
                 return true
             }
             KeyEvent.KEYCODE_DPAD_RIGHT -> {
-                nav.move(Direction.RIGHT, listCount = listCount, gridCols = 4, gridCount = gridCount, railCount = railCount)
-                applyFocus()
+                dispatchNavigationMove(Direction.RIGHT)
                 return true
             }
             KeyEvent.KEYCODE_BUTTON_A, KeyEvent.KEYCODE_ENTER -> {
@@ -668,6 +663,30 @@ class MainActivity : AppCompatActivity() {
             }
         }
         return super.dispatchKeyEvent(event)
+    }
+
+    private fun dispatchNavigationMove(dir: Direction) {
+        val systems = store.enabledSystems.toList().sorted()
+        val listCount = when (nav.screen) {
+            ScreenMode.BROWSE -> browsePane.getFilteredCount()
+            ScreenMode.QUEUE -> queuePane.getItemCount()
+            else -> 0
+        }
+        val gridCount = sourcesPane.getSystemCount()
+        val railCount = systems.size
+
+        val target = nav.move(dir, listCount = listCount, gridCols = 4, gridCount = gridCount, railCount = railCount)
+
+        if (target.zone == Zone.RAIL) {
+            if (target.index == railCount + 1 && nav.screen == ScreenMode.QUEUE) {
+                switchScreen(ScreenMode.SOURCES)
+                nav.focus = FocusTarget(Zone.FIELD, 0)
+            } else if (target.index == railCount && nav.screen == ScreenMode.SOURCES) {
+                switchScreen(ScreenMode.QUEUE)
+                nav.focus = FocusTarget(Zone.QLIST, 0)
+            }
+        }
+        applyFocus()
     }
     private fun handlePrimaryAction(systems: List<String>) {
         when (nav.focus.zone) {

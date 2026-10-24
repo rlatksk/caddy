@@ -154,4 +154,31 @@ class DpadNavigatorTest {
         assertEquals(FocusTarget(Zone.FILTERS, maxIndex), targetAfterMax)
         assertEquals(FocusTarget(Zone.FILTERS, maxIndex), nav.focus)
     }
+
+    @Test
+    fun testQueueToConfigFooterNavigation() {
+        val nav = DpadNavigator()
+        nav.screen = ScreenMode.QUEUE
+        // Focus on [Q] (index = railCount = 5)
+        nav.focus = FocusTarget(Zone.RAIL, 5)
+
+        // Moving RIGHT from [Q] moves to [CFG] (index = 6)
+        val toCfg = nav.move(Direction.RIGHT, railCount = 5)
+        assertEquals(FocusTarget(Zone.RAIL, 6), toCfg)
+
+        // Moving LEFT from [CFG] moves back to [Q] (index = 5)
+        val backToQ = nav.move(Direction.LEFT, railCount = 5)
+        assertEquals(FocusTarget(Zone.RAIL, 5), backToQ)
+    }
+
+    @Test
+    fun testSearchBackReturnsToList() {
+        val nav = DpadNavigator()
+        nav.screen = ScreenMode.BROWSE
+        nav.focus = FocusTarget(Zone.SEARCH, 0)
+
+        val exit = nav.handleBack(System.currentTimeMillis())
+        assertFalse(exit)
+        assertEquals(FocusTarget(Zone.LIST, 0), nav.focus)
+    }
 }

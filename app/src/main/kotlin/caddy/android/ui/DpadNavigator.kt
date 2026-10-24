@@ -60,8 +60,8 @@ class DpadNavigator {
             Zone.RAIL -> when (dir) {
                 Direction.UP -> FocusTarget(Zone.RAIL, (focus.index - 1).coerceAtLeast(0))
                 Direction.DOWN -> FocusTarget(Zone.RAIL, (focus.index + 1).coerceAtMost(railCount + 1))
-                Direction.RIGHT -> FocusTarget(Zone.LIST, 0)
-                Direction.LEFT -> focus
+                Direction.RIGHT -> if (focus.index == railCount) FocusTarget(Zone.RAIL, railCount + 1) else FocusTarget(Zone.LIST, 0)
+                Direction.LEFT -> if (focus.index == railCount + 1) FocusTarget(Zone.RAIL, railCount) else focus
             }
             Zone.SEARCH -> when (dir) {
                 Direction.DOWN -> FocusTarget(Zone.FILTERS, 0)
@@ -96,13 +96,13 @@ class DpadNavigator {
             Zone.RAIL -> when (dir) {
                 Direction.UP -> FocusTarget(Zone.RAIL, (focus.index - 1).coerceAtLeast(0))
                 Direction.DOWN -> FocusTarget(Zone.RAIL, (focus.index + 1).coerceAtMost(railCount + 1))
-                Direction.RIGHT -> FocusTarget(Zone.QLIST, 0)
-                Direction.LEFT -> focus
+                Direction.RIGHT -> if (focus.index == railCount) FocusTarget(Zone.RAIL, railCount + 1) else FocusTarget(Zone.QLIST, 0)
+                Direction.LEFT -> if (focus.index == railCount + 1) FocusTarget(Zone.RAIL, railCount) else focus
             }
             Zone.QHEAD -> when (dir) {
                 Direction.DOWN -> FocusTarget(Zone.QLIST, 0)
-                Direction.LEFT -> if (focus.index == 0) FocusTarget(Zone.RAIL, 0) else FocusTarget(Zone.QHEAD, 0)
-                Direction.RIGHT -> FocusTarget(Zone.QHEAD, 1)
+                Direction.LEFT -> if (focus.index == 0) FocusTarget(Zone.RAIL, railCount) else FocusTarget(Zone.QHEAD, 0)
+                Direction.RIGHT -> if (focus.index < 1) FocusTarget(Zone.QHEAD, 1) else FocusTarget(Zone.RAIL, railCount + 1)
                 else -> focus
             }
             Zone.QLIST -> when (dir) {
@@ -111,8 +111,8 @@ class DpadNavigator {
                     val maxIdx = (listCount - 1).coerceAtLeast(0)
                     FocusTarget(Zone.QLIST, (focus.index + 1).coerceAtMost(maxIdx))
                 }
-                Direction.LEFT -> FocusTarget(Zone.RAIL, 0)
-                else -> focus
+                Direction.LEFT -> FocusTarget(Zone.RAIL, railCount)
+                Direction.RIGHT -> FocusTarget(Zone.RAIL, railCount + 1)
             }
             else -> focus
         }
@@ -123,8 +123,8 @@ class DpadNavigator {
             Zone.RAIL -> when (dir) {
                 Direction.UP -> FocusTarget(Zone.RAIL, (focus.index - 1).coerceAtLeast(0))
                 Direction.DOWN -> FocusTarget(Zone.RAIL, (focus.index + 1).coerceAtMost(railCount + 1))
-                Direction.RIGHT -> FocusTarget(Zone.FIELD, 0)
-                Direction.LEFT -> focus
+                Direction.RIGHT -> if (focus.index == railCount) FocusTarget(Zone.RAIL, railCount + 1) else FocusTarget(Zone.FIELD, 0)
+                Direction.LEFT -> if (focus.index == railCount + 1) FocusTarget(Zone.RAIL, railCount) else focus
             }
             Zone.FIELD -> when (dir) {
                 Direction.UP -> if (focus.index > 0) FocusTarget(Zone.FIELD, focus.index - 1) else focus
@@ -161,8 +161,12 @@ class DpadNavigator {
             focus = FocusTarget(Zone.LIST, focus.index)
             return false
         }
+        if (focus.zone == Zone.SEARCH) {
+            focus = FocusTarget(Zone.LIST, focus.index)
+            return false
+        }
 
-        if (focus.zone == Zone.LIST || focus.zone == Zone.FILTERS || focus.zone == Zone.SEARCH) {
+        if (focus.zone == Zone.LIST || focus.zone == Zone.FILTERS) {
             focus = FocusTarget(Zone.RAIL, 0)
             return false
         }
