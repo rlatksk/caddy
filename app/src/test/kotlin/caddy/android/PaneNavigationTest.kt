@@ -29,9 +29,9 @@ class PaneNavigationTest {
         val headRight2 = nav.move(Direction.RIGHT, listCount = 3)
         assertEquals(FocusTarget(Zone.QHEAD, 2), headRight2)
 
-        // QHEAD index 2 -> Config on RIGHT
-        val toConfig = nav.move(Direction.RIGHT, listCount = 3, railCount = 1)
-        assertEquals(FocusTarget(Zone.RAIL, 2), toConfig)
+        // QHEAD index 2 clamped on RIGHT
+        val toRight = nav.move(Direction.RIGHT, listCount = 3, railCount = 1)
+        assertEquals(FocusTarget(Zone.QHEAD, 2), toRight)
 
         // Reset to QHEAD 0
         nav.focus = FocusTarget(Zone.QHEAD, 0)

@@ -58,8 +58,8 @@ class DpadNavigator {
     private fun moveBrowse(dir: Direction, listCount: Int, railCount: Int): FocusTarget {
         return when (focus.zone) {
             Zone.RAIL -> when (dir) {
-                Direction.UP -> FocusTarget(Zone.RAIL, (focus.index - 1).coerceAtLeast(0))
-                Direction.DOWN -> FocusTarget(Zone.RAIL, (focus.index + 1).coerceAtMost(railCount + 1))
+                Direction.UP -> if (focus.index >= railCount) FocusTarget(Zone.RAIL, (railCount - 1).coerceAtLeast(0)) else FocusTarget(Zone.RAIL, (focus.index - 1).coerceAtLeast(0))
+                Direction.DOWN -> if (focus.index < railCount) FocusTarget(Zone.RAIL, (focus.index + 1).coerceAtMost(railCount)) else focus
                 Direction.RIGHT -> if (focus.index == railCount) FocusTarget(Zone.RAIL, railCount + 1) else FocusTarget(Zone.LIST, 0)
                 Direction.LEFT -> if (focus.index == railCount + 1) FocusTarget(Zone.RAIL, railCount) else focus
             }
@@ -96,15 +96,15 @@ class DpadNavigator {
     private fun moveQueue(dir: Direction, listCount: Int, railCount: Int): FocusTarget {
         return when (focus.zone) {
             Zone.RAIL -> when (dir) {
-                Direction.UP -> FocusTarget(Zone.RAIL, (focus.index - 1).coerceAtLeast(0))
-                Direction.DOWN -> FocusTarget(Zone.RAIL, (focus.index + 1).coerceAtMost(railCount + 1))
+                Direction.UP -> if (focus.index >= railCount) FocusTarget(Zone.RAIL, (railCount - 1).coerceAtLeast(0)) else FocusTarget(Zone.RAIL, (focus.index - 1).coerceAtLeast(0))
+                Direction.DOWN -> if (focus.index < railCount) FocusTarget(Zone.RAIL, (focus.index + 1).coerceAtMost(railCount)) else focus
                 Direction.RIGHT -> if (focus.index == railCount) FocusTarget(Zone.RAIL, railCount + 1) else FocusTarget(Zone.QLIST, 0)
                 Direction.LEFT -> if (focus.index == railCount + 1) FocusTarget(Zone.RAIL, railCount) else focus
             }
             Zone.QHEAD -> when (dir) {
                 Direction.DOWN -> FocusTarget(Zone.QLIST, 0)
                 Direction.LEFT -> if (focus.index == 0) FocusTarget(Zone.RAIL, railCount) else FocusTarget(Zone.QHEAD, focus.index - 1)
-                Direction.RIGHT -> if (focus.index < 2) FocusTarget(Zone.QHEAD, focus.index + 1) else FocusTarget(Zone.RAIL, railCount + 1)
+                Direction.RIGHT -> FocusTarget(Zone.QHEAD, (focus.index + 1).coerceAtMost(2))
                 else -> focus
             }
             Zone.QLIST -> when (dir) {
@@ -114,7 +114,7 @@ class DpadNavigator {
                     FocusTarget(Zone.QLIST, (focus.index + 1).coerceAtMost(maxIdx))
                 }
                 Direction.LEFT -> FocusTarget(Zone.RAIL, railCount)
-                Direction.RIGHT -> FocusTarget(Zone.RAIL, railCount + 1)
+                Direction.RIGHT -> focus
             }
             else -> focus
         }
@@ -123,8 +123,8 @@ class DpadNavigator {
     private fun moveSources(dir: Direction, gridCols: Int, gridCount: Int, railCount: Int): FocusTarget {
         return when (focus.zone) {
             Zone.RAIL -> when (dir) {
-                Direction.UP -> FocusTarget(Zone.RAIL, (focus.index - 1).coerceAtLeast(0))
-                Direction.DOWN -> FocusTarget(Zone.RAIL, (focus.index + 1).coerceAtMost(railCount + 1))
+                Direction.UP -> if (focus.index >= railCount) FocusTarget(Zone.RAIL, (railCount - 1).coerceAtLeast(0)) else FocusTarget(Zone.RAIL, (focus.index - 1).coerceAtLeast(0))
+                Direction.DOWN -> if (focus.index < railCount) FocusTarget(Zone.RAIL, (focus.index + 1).coerceAtMost(railCount)) else focus
                 Direction.RIGHT -> if (focus.index == railCount) FocusTarget(Zone.RAIL, railCount + 1) else FocusTarget(Zone.FIELD, 0)
                 Direction.LEFT -> if (focus.index == railCount + 1) FocusTarget(Zone.RAIL, railCount) else focus
             }

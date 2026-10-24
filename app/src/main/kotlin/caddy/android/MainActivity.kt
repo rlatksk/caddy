@@ -725,15 +725,6 @@ class MainActivity : AppCompatActivity() {
 
         val target = nav.move(dir, listCount = listCount, gridCols = 4, gridCount = gridCount, railCount = railCount)
 
-        if (target.zone == Zone.RAIL) {
-            if (target.index == railCount + 1 && nav.screen == ScreenMode.QUEUE) {
-                switchScreen(ScreenMode.SOURCES)
-                nav.focus = FocusTarget(Zone.FIELD, 0)
-            } else if (target.index == railCount && nav.screen == ScreenMode.SOURCES) {
-                switchScreen(ScreenMode.QUEUE)
-                nav.focus = FocusTarget(Zone.QLIST, 0)
-            }
-        }
         applyFocus()
     }
     private fun handlePrimaryAction(systems: List<String>) {
