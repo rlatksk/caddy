@@ -314,15 +314,7 @@ class MainActivity : AppCompatActivity() {
             updateQueuePaneItems()
         }
         if (nav.screen == ScreenMode.BROWSE && currentSystem.isNotEmpty()) {
-            val romsDir = File(store.romsRoot, currentSystem)
-            val sourceName = store.sources().firstOrNull { currentSystem in it.systems }?.name ?: ""
-            browsePane.setCatalog(
-                systemId = currentSystem,
-                sourceName = sourceName,
-                entries = currentCatalog,
-                queueItems = queueItems,
-                romsDir = romsDir,
-            )
+            browsePane.updateQueueItems(queueItems)
         }
     }
 
@@ -512,11 +504,16 @@ class MainActivity : AppCompatActivity() {
                 return true
             }
             KeyEvent.KEYCODE_BUTTON_B, KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_ESCAPE -> {
+                val prevScreen = nav.screen
                 val exit = nav.handleBack(System.currentTimeMillis())
                 if (exit) {
                     finish()
                 } else {
-                    applyFocus()
+                    if (prevScreen != nav.screen) {
+                        switchScreen(nav.screen)
+                    } else {
+                        applyFocus()
+                    }
                     if (nav.focus.zone == Zone.RAIL && nav.screen == ScreenMode.BROWSE) {
                         Toast.makeText(this, "Press back again to exit", Toast.LENGTH_SHORT).show()
                     }
@@ -566,8 +563,14 @@ class MainActivity : AppCompatActivity() {
                     applyFocus()
                 }
             }
+            Zone.FILTERS -> {
+                val mode = FilterMode.entries.getOrNull(nav.focus.index) ?: FilterMode.ALL
+                filter = mode
+                nav.filter = mode
+                browsePane.setFilter(mode)
+            }
             Zone.LIST -> {
-                nav.focus = FocusTarget(Zone.DETAIL, 0)
+                nav.focus = FocusTarget(Zone.DETAIL, nav.focus.index)
                 applyFocus()
             }
             Zone.DETAIL -> {

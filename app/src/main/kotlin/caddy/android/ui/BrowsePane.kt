@@ -397,6 +397,15 @@ class BrowsePane(
 
         applyFilterAndSearch()
     }
+    fun updateQueueItems(queueItems: List<DownloadQueue.Row>) {
+        queueMap.clear()
+        for (item in queueItems) {
+            queueMap[item.filename] = item
+        }
+        gameAdapter.notifyDataSetChanged()
+        updateDetailStatusAndAction()
+    }
+
 
     fun setFilter(mode: FilterMode) {
         if (currentFilter != mode) {
@@ -618,13 +627,42 @@ class BrowsePane(
         val crc = if (entry.filename.contains("(")) "" else ""
         setDottedRowText(hashRowView, "hash/crc32", if (crc.isNotEmpty()) crc else "—")
 
-        val sysDir = romsDir?.let { File(it, systemId).absolutePath } ?: "/ROMs/${systemId.uppercase()}"
+        val sysDir = romsDir?.absolutePath ?: "/ROMs/${systemId.uppercase()}"
         setDottedRowText(pathRowView, "path", "$sysDir/${entry.filename}")
 
         // Synopsis
         synopsisView.text = "${entry.title} for ${systemId.uppercase()}."
 
-        // Status & Primary Button
+        updateDetailStatusAndAction()
+
+        // Debounced poster fetch (110 ms)
+        posterJob?.cancel()
+        posterImageView.visibility = View.GONE
+        posterPlaceholder.visibility = View.VISIBLE
+        posterPlaceholder.text = "LOADING..."
+
+        val filename = entry.filename
+        val curSys = systemId
+        val targetW = CaddyTheme.dp(context, 140f)
+        val targetH = CaddyTheme.dp(context, 110f)
+
+        posterJob = scope.launch {
+            delay(110)
+            val bitmap = posterCache.getPoster(curSys, filename, targetW, targetH)
+            if (bitmap != null) {
+                posterImageView.setImageBitmap(bitmap)
+                posterImageView.visibility = View.VISIBLE
+                posterPlaceholder.visibility = View.GONE
+            } else {
+                posterImageView.visibility = View.GONE
+                posterPlaceholder.visibility = View.VISIBLE
+                posterPlaceholder.text = "NO ART"
+            }
+        }
+    }
+
+    private fun updateDetailStatusAndAction() {
+        val entry = filteredEntries.getOrNull(selectedIndex) ?: return
         val status = getEntryStatus(entry)
         val qItem = queueMap[entry.filename]
 
@@ -656,33 +694,7 @@ class BrowsePane(
                 primaryActionButton.text = "Download"
             }
         }
-
         renderDetailFocus()
-
-        // Debounced poster fetch (110 ms)
-        posterJob?.cancel()
-        posterImageView.visibility = View.GONE
-        posterPlaceholder.visibility = View.VISIBLE
-        posterPlaceholder.text = "LOADING..."
-
-        val filename = entry.filename
-        val curSys = systemId
-        val targetW = CaddyTheme.dp(context, 140f)
-        val targetH = CaddyTheme.dp(context, 110f)
-
-        posterJob = scope.launch {
-            delay(110)
-            val bitmap = posterCache.getPoster(curSys, filename, targetW, targetH)
-            if (bitmap != null) {
-                posterImageView.setImageBitmap(bitmap)
-                posterImageView.visibility = View.VISIBLE
-                posterPlaceholder.visibility = View.GONE
-            } else {
-                posterImageView.visibility = View.GONE
-                posterPlaceholder.visibility = View.VISIBLE
-                posterPlaceholder.text = "NO ART"
-            }
-        }
     }
 
     // ==========================================
@@ -710,7 +722,7 @@ class BrowsePane(
         }
 
         // Check local disk if romsDir is provided
-        val diskFile = romsDir?.let { File(File(it, systemId), entry.filename) }
+        val diskFile = romsDir?.let { File(it, entry.filename) }
         val onDisk = diskFile?.exists() == true && diskFile.length() > 0
         return if (onDisk) {
             EntryStatus("ok", isOnDisk = true, isInQueue = false, isFailed = false)

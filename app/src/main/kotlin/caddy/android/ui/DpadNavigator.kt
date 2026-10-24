@@ -81,7 +81,7 @@ class DpadNavigator {
                     FocusTarget(Zone.LIST, (focus.index + 1).coerceAtMost(maxIdx))
                 }
                 Direction.LEFT -> FocusTarget(Zone.RAIL, 0)
-                Direction.RIGHT -> FocusTarget(Zone.DETAIL, 0)
+                Direction.RIGHT -> FocusTarget(Zone.DETAIL, focus.index)
             }
             Zone.DETAIL -> when (dir) {
                 Direction.LEFT -> FocusTarget(Zone.LIST, focus.index)
@@ -127,7 +127,8 @@ class DpadNavigator {
                 Direction.LEFT -> focus
             }
             Zone.FIELD -> when (dir) {
-                Direction.DOWN -> FocusTarget(Zone.GRID, 0)
+                Direction.UP -> if (focus.index > 0) FocusTarget(Zone.FIELD, focus.index - 1) else focus
+                Direction.DOWN -> if (focus.index < 2) FocusTarget(Zone.FIELD, focus.index + 1) else FocusTarget(Zone.GRID, 0)
                 Direction.LEFT -> FocusTarget(Zone.RAIL, 0)
                 else -> focus
             }

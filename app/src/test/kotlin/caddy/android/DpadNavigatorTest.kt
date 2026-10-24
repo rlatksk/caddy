@@ -39,6 +39,56 @@ class DpadNavigatorTest {
         assertEquals(FocusTarget(Zone.LIST, 0), backToList)
         assertEquals(FocusTarget(Zone.LIST, 0), nav.focus)
     }
+    @Test
+    fun testListIndexPreservedOnDetailTransition() {
+        val nav = DpadNavigator()
+        nav.move(Direction.DOWN, listCount = 10)
+        nav.move(Direction.DOWN, listCount = 10)
+        assertEquals(FocusTarget(Zone.LIST, 2), nav.focus)
+
+        // LIST -> DETAIL on RIGHT preserves index 2
+        val detailTarget = nav.move(Direction.RIGHT, listCount = 10)
+        assertEquals(FocusTarget(Zone.DETAIL, 2), detailTarget)
+        assertEquals(FocusTarget(Zone.DETAIL, 2), nav.focus)
+
+        // DETAIL -> LIST on LEFT preserves index 2
+        val listTarget = nav.move(Direction.LEFT, listCount = 10)
+        assertEquals(FocusTarget(Zone.LIST, 2), listTarget)
+        assertEquals(FocusTarget(Zone.LIST, 2), nav.focus)
+    }
+
+    @Test
+    fun testSourcesFieldVerticalNavigation() {
+        val nav = DpadNavigator()
+        nav.screen = ScreenMode.SOURCES
+        nav.focus = FocusTarget(Zone.FIELD, 0)
+
+        // DOWN from field 0 -> field 1
+        val f1 = nav.move(Direction.DOWN, gridCols = 4, gridCount = 8)
+        assertEquals(FocusTarget(Zone.FIELD, 1), f1)
+
+        // DOWN from field 1 -> field 2
+        val f2 = nav.move(Direction.DOWN, gridCols = 4, gridCount = 8)
+        assertEquals(FocusTarget(Zone.FIELD, 2), f2)
+
+        // DOWN from field 2 -> grid 0
+        val grid0 = nav.move(Direction.DOWN, gridCols = 4, gridCount = 8)
+        assertEquals(FocusTarget(Zone.GRID, 0), grid0)
+
+        // UP from grid 0 -> field 0
+        val backToField = nav.move(Direction.UP, gridCols = 4, gridCount = 8)
+        assertEquals(FocusTarget(Zone.FIELD, 0), backToField)
+
+        // Move to field 2 then UP -> field 1 then UP -> field 0
+        nav.focus = FocusTarget(Zone.FIELD, 2)
+        val upTo1 = nav.move(Direction.UP, gridCols = 4, gridCount = 8)
+        assertEquals(FocusTarget(Zone.FIELD, 1), upTo1)
+        val upTo0 = nav.move(Direction.UP, gridCols = 4, gridCount = 8)
+        assertEquals(FocusTarget(Zone.FIELD, 0), upTo0)
+        val upClamp = nav.move(Direction.UP, gridCols = 4, gridCount = 8)
+        assertEquals(FocusTarget(Zone.FIELD, 0), upClamp)
+    }
+
 
     @Test
     fun testFilterRotation() {

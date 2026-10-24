@@ -91,19 +91,20 @@ class PosterCache(context: Context, private val http: OkHttpClient) {
         // 3. Network fetch
         try {
             val request = Request.Builder().url(url).build()
-            val response = http.newCall(request).execute()
-            if (!response.isSuccessful) return@withContext null
-            val bytes = response.body?.bytes() ?: return@withContext null
+            http.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) return@withContext null
+                val bytes = response.body?.bytes() ?: return@withContext null
 
-            // Write to disk
-            FileOutputStream(diskFile).use { it.write(bytes) }
+                // Write to disk
+                FileOutputStream(diskFile).use { it.write(bytes) }
 
-            // Decode downsampled
-            val bitmap = decodeSampledBitmap(diskFile.absolutePath, targetWidth, targetHeight)
-            if (bitmap != null) {
-                memoryCache.put(key, bitmap)
+                // Decode downsampled
+                val bitmap = decodeSampledBitmap(diskFile.absolutePath, targetWidth, targetHeight)
+                if (bitmap != null) {
+                    memoryCache.put(key, bitmap)
+                }
+                return@withContext bitmap
             }
-            return@withContext bitmap
         } catch (_: Exception) {
             return@withContext null
         }

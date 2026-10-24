@@ -212,6 +212,11 @@ class RailView(context: Context) : LinearLayout(context) {
     fun setRailFocus(isFocused: Boolean, focusedIndex: Int) {
         railFocused = isFocused
         railFocusedIndex = focusedIndex
+        if (isFocused && focusedIndex in systemViews.indices) {
+            val targetView = systemViews[focusedIndex]
+            val rect = android.graphics.Rect(0, 0, targetView.width, targetView.height)
+            targetView.requestRectangleOnScreen(rect)
+        }
         render()
     }
 

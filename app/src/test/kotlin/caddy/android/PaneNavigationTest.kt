@@ -45,10 +45,13 @@ class PaneNavigationTest {
             focus = FocusTarget(Zone.FIELD, 0)
         }
 
-        // FIELD -> GRID on DOWN
+        // FIELD 0 -> FIELD 1 -> FIELD 2 -> GRID on DOWN
+        val field1 = nav.move(Direction.DOWN, gridCols = 4, gridCount = 8)
+        assertEquals(FocusTarget(Zone.FIELD, 1), field1)
+        val field2 = nav.move(Direction.DOWN, gridCols = 4, gridCount = 8)
+        assertEquals(FocusTarget(Zone.FIELD, 2), field2)
         val gridTarget = nav.move(Direction.DOWN, gridCols = 4, gridCount = 8)
         assertEquals(FocusTarget(Zone.GRID, 0), gridTarget)
-
         // GRID -> GRID move right
         val gridRight = nav.move(Direction.RIGHT, gridCols = 4, gridCount = 8)
         assertEquals(FocusTarget(Zone.GRID, 1), gridRight)
