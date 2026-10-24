@@ -32,3 +32,4 @@ local.properties
 
 # Impeccable skill scratch state (decision payloads, build gates)
 /.impeccable/
+/.superpowers/
