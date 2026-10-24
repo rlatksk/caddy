@@ -14,7 +14,6 @@ import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import caddy.android.DownloadQueue
-import caddy.android.DownloadQueueEntry
 
 class QueuePane(context: Context) : LinearLayout(context) {
 
@@ -29,15 +28,15 @@ class QueuePane(context: Context) : LinearLayout(context) {
     private val queueAdapter: QueueAdapter
 
     // State
-    private var items: List<DownloadQueueEntry> = emptyList()
+    private var items: List<DownloadQueue.Row> = emptyList()
     private var isQueuePaused: Boolean = false
     private var currentFocus: FocusTarget = FocusTarget(Zone.QLIST, 0)
-
     // Callbacks
     var onResumeQueue: (() -> Unit)? = null
     var onClearFinished: (() -> Unit)? = null
     var onOpenFiles: (() -> Unit)? = null
-    var onItemAction: ((item: DownloadQueueEntry) -> Unit)? = null
+    var onItemAction: ((item: DownloadQueue.Row) -> Unit)? = null
+
     init {
         orientation = VERTICAL
         layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
@@ -149,7 +148,7 @@ class QueuePane(context: Context) : LinearLayout(context) {
         }
     }
 
-    fun setQueueItems(newItems: List<DownloadQueueEntry>, paused: Boolean) {
+    fun setQueueItems(newItems: List<DownloadQueue.Row>, paused: Boolean) {
         items = newItems
         isQueuePaused = paused
         renderHeader()
