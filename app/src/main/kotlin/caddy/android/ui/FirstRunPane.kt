@@ -212,4 +212,16 @@ class FirstRunPane(context: Context) : FrameLayout(context) {
     fun setInitialUrl(url: String) {
         urlInput.setText(url)
     }
+
+    fun submitRepo() {
+        val url = urlInput.text.toString().trim()
+        if (url.isNotEmpty()) {
+            onFetchRepo?.invoke(url)
+        } else {
+            val json = rawJsonInput.text.toString().trim()
+            if (json.isNotEmpty()) {
+                onApplyJson?.invoke(json)
+            }
+        }
+    }
 }

@@ -299,6 +299,7 @@ class SourcesPane(context: Context) : LinearLayout(context) {
         renderGrid()
     }
 
+    fun getSystemCount(): Int = allSystems.size
     private fun renderGrid() {
         gridLayout.removeAllViews()
         systemChips.clear()

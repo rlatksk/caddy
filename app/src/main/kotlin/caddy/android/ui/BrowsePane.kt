@@ -417,6 +417,12 @@ class BrowsePane(
         }
     }
 
+    fun getFilteredCount(): Int = filteredEntries.size
+
+    fun focusSearch() {
+        searchInput.requestFocus()
+    }
+
     fun setSelectedGameIndex(index: Int) {
         if (filteredEntries.isEmpty()) {
             selectedIndex = 0

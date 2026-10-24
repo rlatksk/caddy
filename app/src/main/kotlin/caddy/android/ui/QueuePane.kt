@@ -150,6 +150,7 @@ class QueuePane(context: Context) : LinearLayout(context) {
         queueAdapter.notifyDataSetChanged()
     }
 
+    fun getItemCount(): Int = items.size
     fun applyFocus(target: FocusTarget) {
         currentFocus = target
         renderHeaderFocus()
