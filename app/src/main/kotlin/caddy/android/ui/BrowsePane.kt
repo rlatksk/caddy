@@ -81,6 +81,7 @@ class BrowsePane(
     var onResumeRequested: ((id: Long) -> Unit)? = null
     var onGameSelected: ((index: Int, entry: CatalogEntry) -> Unit)? = null
     var onOpenGameFolder: ((systemId: String, entry: CatalogEntry) -> Unit)? = null
+    var onDeleteGameRequested: ((systemId: String, entry: CatalogEntry) -> Unit)? = null
     var onFilterChanged: ((mode: FilterMode) -> Unit)? = null
     init {
         orientation = HORIZONTAL
@@ -161,7 +162,7 @@ class BrowsePane(
         }
         headerBar.addView(shortcutsLegendView)
         searchInput = EditText(context).apply {
-            val widthPx = CaddyTheme.dp(context, 196f)
+            val widthPx = CaddyTheme.dp(context, 160f)
             val padH = CaddyTheme.dp(context, 8f)
             val padV = CaddyTheme.dp(context, 5f)
             layoutParams = LayoutParams(widthPx, LayoutParams.WRAP_CONTENT)
@@ -172,6 +173,8 @@ class BrowsePane(
             setHintTextColor(0xFF8B908A.toInt())
             hint = "Search..."
             isSingleLine = true
+            maxLines = 1
+            imeOptions = EditorInfo.IME_ACTION_SEARCH or EditorInfo.IME_FLAG_NO_EXTRACT_UI
             background = GradientDrawable().apply {
                 setColor(CaddyTheme.FIELD)
                 setStroke(1, 0xFF222526.toInt())
@@ -445,11 +448,8 @@ class BrowsePane(
             }
         }
         actionsContainer.addView(openFolderButton)
-
         detailPane.addView(actionsContainer)
-
         addView(detailPane)
-
         renderFilters()
         renderDetail()
     }
@@ -583,9 +583,17 @@ class BrowsePane(
 
     fun triggerPrimaryAction() {
         val entry = filteredEntries.getOrNull(selectedIndex) ?: return
-        if (currentFocus.zone == Zone.DETAIL && currentFocus.index == 1) {
-            onOpenGameFolder?.invoke(systemId, entry)
-            return
+        if (currentFocus.zone == Zone.DETAIL) {
+            when (currentFocus.index) {
+                1 -> {
+                    onOpenGameFolder?.invoke(systemId, entry)
+                    return
+                }
+                2 -> {
+                    onDeleteGameRequested?.invoke(systemId, entry)
+                    return
+                }
+            }
         }
         val status = getEntryStatus(entry)
         val qItem = queueMap[entry.filename]
@@ -732,20 +740,40 @@ class BrowsePane(
         }
 
         val isPrimaryFocused = isDetailFocused && currentFocus.index == 0
-        if (isPrimaryFocused) {
-            primaryActionButton.background = GradientDrawable().apply {
-                setColor(CaddyTheme.INK)
-                setStroke(CaddyTheme.dp(context, 3f), CaddyTheme.AMBER)
+        val isDeleteAction = rawActionLabel == "Delete Game"
+
+        if (isDeleteAction) {
+            if (isPrimaryFocused) {
+                primaryActionButton.background = GradientDrawable().apply {
+                    setColor(CaddyTheme.RED)
+                    setStroke(CaddyTheme.dp(context, 2f), CaddyTheme.RED)
+                }
+                primaryActionButton.setTextColor(0xFF08090A.toInt())
+                primaryActionButton.text = "> DELETE GAME <"
+            } else {
+                primaryActionButton.background = GradientDrawable().apply {
+                    setColor(0xFF141617.toInt())
+                    setStroke(1, CaddyTheme.RED)
+                }
+                primaryActionButton.setTextColor(CaddyTheme.RED)
+                primaryActionButton.text = "[DELETE GAME]"
             }
-            primaryActionButton.setTextColor(CaddyTheme.GROUND)
-            primaryActionButton.text = "> $rawActionLabel <"
         } else {
-            primaryActionButton.background = GradientDrawable().apply {
-                setColor(0xFF141617.toInt())
-                setStroke(1, CaddyTheme.LINE)
+            if (isPrimaryFocused) {
+                primaryActionButton.background = GradientDrawable().apply {
+                    setColor(CaddyTheme.INK)
+                    setStroke(CaddyTheme.dp(context, 3f), CaddyTheme.AMBER)
+                }
+                primaryActionButton.setTextColor(CaddyTheme.GROUND)
+                primaryActionButton.text = "> $rawActionLabel <"
+            } else {
+                primaryActionButton.background = GradientDrawable().apply {
+                    setColor(0xFF141617.toInt())
+                    setStroke(1, CaddyTheme.LINE)
+                }
+                primaryActionButton.setTextColor(CaddyTheme.INK)
+                primaryActionButton.text = rawActionLabel
             }
-            primaryActionButton.setTextColor(CaddyTheme.INK)
-            primaryActionButton.text = rawActionLabel
         }
     }
 

@@ -262,6 +262,7 @@ class QueuePane(context: Context) : LinearLayout(context) {
 
         inner class QueueViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             val root: LinearLayout = itemView as LinearLayout
+            val systemBadgeText: TextView = itemView.findViewById(100)
             val titleText: TextView = itemView.findViewById(101)
             val progressText: TextView = itemView.findViewById(102)
             val statusBadge: TextView = itemView.findViewById(103)
@@ -284,6 +285,25 @@ class QueuePane(context: Context) : LinearLayout(context) {
                     0
                 )
             }
+            // System tag badge (monospace 10 dp uppercase bold)
+            val sysBadge = TextView(context).apply {
+                id = 100
+                typeface = Typeface.MONOSPACE
+                textSize = 10f
+                setTypeface(typeface, Typeface.BOLD)
+                gravity = Gravity.CENTER
+                setPadding(
+                    CaddyTheme.dp(context, 5f),
+                    CaddyTheme.dp(context, 1f),
+                    CaddyTheme.dp(context, 5f),
+                    CaddyTheme.dp(context, 1f)
+                )
+                val lp = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT).apply {
+                    rightMargin = CaddyTheme.dp(context, 8f)
+                }
+                layoutParams = lp
+            }
+            row.addView(sysBadge)
 
             // Title (monospace 12 dp)
             val titleView = TextView(context).apply {
@@ -345,8 +365,8 @@ class QueuePane(context: Context) : LinearLayout(context) {
             val item = items[position]
             val isSelected = currentFocus.zone == Zone.QLIST && currentFocus.index == position
 
+            holder.systemBadgeText.text = item.system.uppercase()
             holder.titleText.text = item.title
-
             val progressStr = when (item.state) {
                 DownloadQueue.STATE_DONE -> "▮▮▮▮▮▮▮▮▮▮ 100% (${formatBytes(item.sizeBytes)})"
                 DownloadQueue.STATE_UNZIPPING -> "▮▮▮▮▮▮▮▮▮▮ unzipping archive…"
@@ -406,6 +426,11 @@ class QueuePane(context: Context) : LinearLayout(context) {
                 holder.progressText.setTextColor(0xFF333333.toInt())
                 holder.statusBadge.setTextColor(CaddyTheme.GROUND)
 
+                holder.systemBadgeText.background = GradientDrawable().apply {
+                    setColor(CaddyTheme.GROUND)
+                }
+                holder.systemBadgeText.setTextColor(CaddyTheme.INK)
+
                 holder.actionButton.background = GradientDrawable().apply {
                     setColor(CaddyTheme.GROUND)
                     setStroke(1, CaddyTheme.GROUND)
@@ -416,6 +441,12 @@ class QueuePane(context: Context) : LinearLayout(context) {
                 holder.titleText.setTextColor(CaddyTheme.INK)
                 holder.progressText.setTextColor(CaddyTheme.MUTE)
                 holder.statusBadge.setTextColor(statusColor)
+
+                holder.systemBadgeText.background = GradientDrawable().apply {
+                    setColor(0xFF141617.toInt())
+                    setStroke(1, 0xFF2A2D30.toInt())
+                }
+                holder.systemBadgeText.setTextColor(CaddyTheme.AMBER)
 
                 holder.actionButton.background = GradientDrawable().apply {
                     setColor(Color.TRANSPARENT)

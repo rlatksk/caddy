@@ -110,11 +110,29 @@ class MainActivity : AppCompatActivity() {
         }
 
         buildUi()
+        hideSystemUi()
         initState()
     }
 
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) {
+            hideSystemUi()
+        }
+    }
+
+    private fun hideSystemUi() {
+        runCatching {
+            val decor = window.decorView ?: return
+            val controller = androidx.core.view.WindowInsetsControllerCompat(window, decor)
+            controller.hide(androidx.core.view.WindowInsetsCompat.Type.systemBars())
+            controller.systemBarsBehavior =
+                androidx.core.view.WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
+    }
     override fun onResume() {
         super.onResume()
+        hideSystemUi()
         handler.post(queueTickRunnable)
     }
 
@@ -122,7 +140,6 @@ class MainActivity : AppCompatActivity() {
         super.onPause()
         handler.removeCallbacks(queueTickRunnable)
     }
-
     private fun buildUi() {
         // Outer container: horizontal LinearLayout, exact 832x444 dp app frame padding 12 dp
         val pad = CaddyTheme.dp(this, 12f)
@@ -167,6 +184,9 @@ class MainActivity : AppCompatActivity() {
             }
             onOpenGameFolder = { sys, _ ->
                 openSystemFolder(sys)
+            }
+            onDeleteGameRequested = { sys, entry ->
+                confirmDeleteGame(sys, entry)
             }
         }
         queuePane = QueuePane(this).apply {
@@ -559,6 +579,57 @@ class MainActivity : AppCompatActivity() {
         val fullPath = File(store.romsRoot, sysDir).absolutePath
         openFilesApp(fullPath)
     }
+    private fun confirmDeleteGame(sys: String, entry: CatalogEntry) {
+        val dialog = androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("DELETE GAME")
+            .setMessage("Are you really sure you want to delete ${entry.title} from storage?")
+            .setPositiveButton("DELETE") { _, _ ->
+                deleteGameFromStorage(sys, entry)
+            }
+            .setNegativeButton("CANCEL", null)
+            .create()
+
+        dialog.show()
+        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(CaddyTheme.PANEL))
+        dialog.findViewById<android.widget.TextView>(android.R.id.message)?.apply {
+            typeface = android.graphics.Typeface.MONOSPACE
+            setTextColor(CaddyTheme.INK)
+        }
+        dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE)?.apply {
+            typeface = android.graphics.Typeface.MONOSPACE
+            setTextColor(CaddyTheme.RED)
+        }
+        dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_NEGATIVE)?.apply {
+            typeface = android.graphics.Typeface.MONOSPACE
+            setTextColor(CaddyTheme.INK)
+            requestFocus()
+        }
+    }
+
+    private fun deleteGameFromStorage(sys: String, entry: CatalogEntry) {
+        val sysDir = SystemRouter.relativePath(sys)
+        val dir = File(store.romsRoot, sysDir)
+        val baseName = entry.filename.substringBeforeLast('.')
+        var deletedCount = 0
+
+        val matching = dir.listFiles { _, name ->
+            name.equals(entry.filename, ignoreCase = true) ||
+            (name.startsWith(baseName, ignoreCase = true) && !name.endsWith(".part", ignoreCase = true))
+        }
+        matching?.forEach { file ->
+            if (file.delete()) deletedCount++
+        }
+
+        val qItem = queue.all().firstOrNull { it.filename == entry.filename }
+        if (qItem != null) {
+            queue.remove(qItem.id)
+        }
+
+        refreshQueueState()
+        loadCatalogForSystem(currentSystem)
+        Toast.makeText(this, "Deleted ${entry.title}", Toast.LENGTH_SHORT).show()
+    }
+
     private fun requestStorageAccess() {
         val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, Uri.parse("package:$packageName"))
